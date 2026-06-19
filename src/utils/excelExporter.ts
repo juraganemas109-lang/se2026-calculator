@@ -3,6 +3,9 @@ import { BusinessRecord } from './calculatorHelper';
 
 const EXCEL_HEADERS = [
   'ID Usaha',
+  'No Bangunan',
+  'No Keluarga',
+  'Nama KK',
   'Nama Usaha',
   'Nama Pemilik',
   'Nomor HP',
@@ -46,6 +49,9 @@ const EXCEL_HEADERS = [
 function flattenRecord(record: BusinessRecord) {
   return [
     record.id,
+    record.identity.nomorBangunan || '',
+    record.identity.nomorKeluarga || '',
+    record.identity.namaKK || '',
     record.identity.namaUsaha,
     record.identity.namaPemilik,
     record.identity.nomorHp,
@@ -119,6 +125,9 @@ export function downloadTemplateExcel() {
     EXCEL_HEADERS,
     [
       'CONTOH-01',
+      '001',
+      '1',
+      'Budi Santoso',
       'Warung Berkah',
       'Budi Santoso',
       '081234567890',
@@ -201,53 +210,56 @@ export function importFromExcel(file: File): Promise<BusinessRecord[]> {
         // Process data rows (skip headers)
         for (let i = 1; i < rows.length; i++) {
           const row = rows[i];
-          if (!row || row.length === 0 || !row[1]) continue; // Skip empty rows (must have Nama Usaha)
+          if (!row || row.length === 0 || !row[4]) continue; // Skip empty rows (must have Nama Usaha)
 
           const id = row[0] ? String(row[0]) : `IM-REC-${Math.floor(100000 + Math.random() * 900000)}`;
-          const namaUsaha = String(row[1] || '').trim();
-          const namaPemilik = String(row[2] || '').trim();
-          const nomorHp = String(row[3] || '').trim();
-          const alamat = String(row[4] || '').trim();
-          const kbli = String(row[5] || '').trim();
-          const kategoriUsaha = String(row[6] || 'A').trim().toUpperCase();
-          const tahunBerdiri = String(row[7] || '2026').trim();
-          const kegiatanUtama = String(row[8] || '').trim();
-          const produkUtama = String(row[9] || '').trim();
-          const contohProduk = String(row[10] || '').trim();
+          const nomorBangunan = String(row[1] || '').trim();
+          const nomorKeluarga = String(row[2] || '').trim();
+          const namaKK = String(row[3] || '').trim();
+          const namaUsaha = String(row[4] || '').trim();
+          const namaPemilik = String(row[5] || '').trim();
+          const nomorHp = String(row[6] || '').trim();
+          const alamat = String(row[7] || '').trim();
+          const kbli = String(row[8] || '').trim();
+          const kategoriUsaha = String(row[9] || 'A').trim().toUpperCase();
+          const tahunBerdiri = String(row[10] || '2026').trim();
+          const kegiatanUtama = String(row[11] || '').trim();
+          const produkUtama = String(row[12] || '').trim();
+          const contohProduk = String(row[13] || '').trim();
 
-          const upahGaji = Number(row[12]) || 0;
-          const biayaProduksi = Number(row[13]) || 0;
-          const biayaPembelianBarang = Number(row[14]) || 0;
-          const biayaOperasional = Number(row[15]) || 0;
-          const biayaNonOperasional = Number(row[16]) || 0;
+          const upahGaji = Number(row[15]) || 0;
+          const biayaProduksi = Number(row[16]) || 0;
+          const biayaPembelianBarang = Number(row[17]) || 0;
+          const biayaOperasional = Number(row[18]) || 0;
+          const biayaNonOperasional = Number(row[19]) || 0;
           
-          const nilaiProduksiPenjualan = Number(row[18]) || 0;
-          const pendapatanLainnya = Number(row[19]) || 0;
+          const nilaiProduksiPenjualan = Number(row[21]) || 0;
+          const pendapatanLainnya = Number(row[22]) || 0;
 
-          // Excel Worker columns: 21, 22, 23, 24
-          const pekerjaLaki = Number(row[20]) || 0;
-          const pekerjaPerempuan = Number(row[21]) || 0;
-          const pekerjaDibayar = Number(row[22]) || 0;
-          const pekerjaTidakDibayar = Number(row[23]) || 0;
+          // Excel Worker columns
+          const pekerjaLaki = Number(row[24]) || 0;
+          const pekerjaPerempuan = Number(row[25]) || 0;
+          const pekerjaDibayar = Number(row[26]) || 0;
+          const pekerjaTidakDibayar = Number(row[27]) || 0;
           const totalPekerjaGender = pekerjaLaki + pekerjaPerempuan;
           const totalPekerjaStatus = pekerjaDibayar + pekerjaTidakDibayar;
-          const modeLuasLahan = String(row[24] || '');
+          const modeLuasLahan = String(row[28] || '');
           const isEstimasiLuas = modeLuasLahan === 'Estimasi Total';
 
-          const panjangTanah = Number(row[25]) || 0;
-          const lebarTanah = Number(row[26]) || 0;
-          const luasTanahExcel = Number(row[27]) || 0;
+          const panjangTanah = Number(row[29]) || 0;
+          const lebarTanah = Number(row[30]) || 0;
+          const luasTanahExcel = Number(row[31]) || 0;
           
           const luasTanah = isEstimasiLuas ? luasTanahExcel : (panjangTanah * lebarTanah);
           const luasLahanEstimasi = isEstimasiLuas ? luasTanahExcel : 0;
-          const hargaTanahPerM2 = Number(row[28]) || 0;
+          const hargaTanahPerM2 = Number(row[32]) || 0;
 
-          const panjangBangunan = Number(row[30]) || 0;
-          const lebarBangunan = Number(row[31]) || 0;
-          const hargaBangunanPerM2 = Number(row[33]) || 0;
+          const panjangBangunan = Number(row[34]) || 0;
+          const lebarBangunan = Number(row[35]) || 0;
+          const hargaBangunanPerM2 = Number(row[37]) || 0;
 
-          const mesinPeralatan = Number(row[35]) || 0;
-          const kendaraanUsaha = Number(row[36]) || 0;
+          const mesinPeralatan = Number(row[39]) || 0;
+          const kendaraanUsaha = Number(row[40]) || 0;
 
           // Re-calculate derived totals to ensure accuracy
           const luasBangunan = panjangBangunan * lebarBangunan;
@@ -261,6 +273,9 @@ export function importFromExcel(file: File): Promise<BusinessRecord[]> {
             id,
             createdAt: currentYear,
             identity: {
+              nomorBangunan,
+              nomorKeluarga,
+              namaKK,
               namaUsaha,
               namaPemilik,
               nomorHp,

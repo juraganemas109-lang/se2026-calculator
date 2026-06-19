@@ -42,6 +42,9 @@ export const OfflineManager: React.FC<OfflineManagerProps> = ({
     return (
       r.identity.namaUsaha.toLowerCase().includes(q) ||
       r.identity.namaPemilik.toLowerCase().includes(q) ||
+      (r.identity.namaKK || '').toLowerCase().includes(q) ||
+      (r.identity.nomorBangunan || '').includes(q) ||
+      (r.identity.nomorKeluarga || '').includes(q) ||
       r.identity.kbli.includes(q) ||
       r.identity.kategoriUsaha.toLowerCase().includes(q) ||
       (r.identity.kegiatanUtama || '').toLowerCase().includes(q)
@@ -198,6 +201,9 @@ export const OfflineManager: React.FC<OfflineManagerProps> = ({
               <table className="w-full text-left border-collapse text-xs md:text-sm">
                 <thead>
                   <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-bold">
+                    <th className="p-3">No Bangunan</th>
+                    <th className="p-3">No Keluarga</th>
+                    <th className="p-3">Nama KK</th>
                     <th className="p-3">Nama Usaha / Pemilik</th>
                     <th className="p-3">KBLI / Kategori</th>
                     <th className="p-3 text-right">Total Pendapatan</th>
@@ -212,8 +218,24 @@ export const OfflineManager: React.FC<OfflineManagerProps> = ({
                       onClick={() => onSelectForView(r.id)}
                       className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors cursor-pointer"
                     >
+                      <td className="p-3 text-center">
+                        <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{r.identity.nomorBangunan || '-'}</span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{r.identity.nomorKeluarga || '-'}</span>
+                      </td>
                       <td className="p-3">
-                        <div className="font-semibold text-slate-800 dark:text-slate-200">{r.identity.namaUsaha}</div>
+                        <div className="font-semibold text-slate-800 dark:text-slate-200">{r.identity.namaKK || '-'}</div>
+                      </td>
+                      <td className="p-3">
+                        <div className="flex items-center gap-1.5">
+                          <div className="font-semibold text-slate-800 dark:text-slate-200">{r.identity.namaUsaha}</div>
+                          {(r.identity.nomorBangunan || r.identity.nomorKeluarga) && (
+                            <span className="px-1.5 py-0.5 bg-bps-orange/10 text-bps-orange-dark dark:text-bps-orange-light text-[9px] font-bold rounded">
+                              B{r.identity.nomorBangunan || '-'}-K{r.identity.nomorKeluarga || '-'}
+                            </span>
+                          )}
+                        </div>
                         <div className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-0.5">{r.identity.namaPemilik}</div>
                       </td>
                       <td className="p-3">
@@ -274,8 +296,18 @@ export const OfflineManager: React.FC<OfflineManagerProps> = ({
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm">{r.identity.namaUsaha}</h4>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">{r.identity.namaPemilik}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm">{r.identity.namaUsaha}</h4>
+                        {(r.identity.nomorBangunan || r.identity.nomorKeluarga) && (
+                          <span className="px-1.5 py-0.5 bg-bps-orange/10 text-bps-orange-dark dark:text-bps-orange-light text-[9px] font-bold rounded">
+                            B{r.identity.nomorBangunan || '-'}-K{r.identity.nomorKeluarga || '-'}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-1">
+                        KK: <span className="text-slate-700 dark:text-slate-300">{r.identity.namaKK || '-'}</span>
+                      </p>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">Pemilik: {r.identity.namaPemilik}</p>
                     </div>
                     <span className="px-2 py-0.5 bg-bps-blue/10 dark:bg-bps-blue/20 text-bps-blue dark:text-bps-blue-light font-mono font-bold text-[10px] rounded">
                       KBLI {r.identity.kbli}

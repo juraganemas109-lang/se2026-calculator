@@ -22,6 +22,9 @@ interface BusinessFormProps {
 
 const INITIAL_STATE = {
   identity: {
+    nomorBangunan: '',
+    nomorKeluarga: '',
+    namaKK: '',
     namaUsaha: '',
     namaPemilik: '',
     nomorHp: '',
@@ -415,6 +418,47 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5 md:col-span-2 bg-bps-blue/5 p-3 rounded-lg border border-bps-blue/10 mb-2">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      No. Bangunan Fisik
+                    </label>
+                    <input
+                      type="text"
+                      value={identity.nomorBangunan}
+                      onChange={e => setIdentity(prev => ({ ...prev, nomorBangunan: e.target.value }))}
+                      className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-bps-blue-light/20 focus:border-bps-blue-light transition-all"
+                      placeholder="Contoh: 001"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      No. Urut Keluarga
+                    </label>
+                    <input
+                      type="text"
+                      value={identity.nomorKeluarga}
+                      onChange={e => setIdentity(prev => ({ ...prev, nomorKeluarga: e.target.value }))}
+                      className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-bps-blue-light/20 focus:border-bps-blue-light transition-all"
+                      placeholder="Contoh: 1"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      Nama Kepala Keluarga
+                    </label>
+                    <input
+                      type="text"
+                      value={identity.namaKK}
+                      onChange={e => setIdentity(prev => ({ ...prev, namaKK: e.target.value }))}
+                      className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-bps-blue-light/20 focus:border-bps-blue-light transition-all"
+                      placeholder="Nama Lengkap KK"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="flex flex-col gap-1.5 relative">
                 <label className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200">
                   Nama Usaha / Cari Referensi <span className="text-red-500">*</span>

@@ -91,6 +91,9 @@ export function exportToPDF(record: BusinessRecord) {
   const valColX = 65;
 
   const identityRows = [
+    { label: 'No. Bangunan Fisik', val: record.identity.nomorBangunan || '-' },
+    { label: 'No. Urut Keluarga', val: record.identity.nomorKeluarga || '-' },
+    { label: 'Nama Kepala Keluarga', val: record.identity.namaKK || '-' },
     { label: 'Nama Usaha', val: record.identity.namaUsaha },
     { label: 'Nama Pemilik/Pengelola', val: record.identity.namaPemilik },
     { label: 'Nomor HP', val: record.identity.nomorHp },

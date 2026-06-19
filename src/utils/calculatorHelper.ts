@@ -1,4 +1,7 @@
 export interface BusinessIdentity {
+  nomorBangunan: string; // Nomor Bangunan
+  nomorKeluarga: string; // Nomor Urut Keluarga
+  namaKK: string;        // Nama Kepala Keluarga
   namaUsaha: string;
   namaPemilik: string;
   nomorHp: string;
