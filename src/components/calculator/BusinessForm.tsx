@@ -484,32 +484,68 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
                     placeholder="Contoh: Pertanian Padi Hibrida"
                   />
                   {isDropdownOpen && (
-                    <div className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-lg divide-y divide-slate-100 dark:divide-slate-800 animate-fadeIn">
+                    <div className="absolute z-50 w-full mt-1 max-h-64 overflow-y-auto bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden" style={{animation: 'dropdownIn 0.15s ease-out'}}>
+                      <style>{`
+                        @keyframes dropdownIn {
+                          from { opacity: 0; transform: translateY(-6px) scaleY(0.97); }
+                          to { opacity: 1; transform: translateY(0) scaleY(1); }
+                        }
+                        @keyframes itemSlideIn {
+                          from { opacity: 0; transform: translateX(-4px); }
+                          to { opacity: 1; transform: translateX(0); }
+                        }
+                      `}</style>
                       {filteredReferences.length === 0 ? (
-                        <div className="p-3 text-xs text-slate-400 dark:text-slate-500">
+                        <div className="p-4 text-xs text-slate-400 dark:text-slate-500 text-center">
+                          <span className="text-2xl block mb-1">🔍</span>
                           Tidak ada referensi ditemukan. Gunakan nama kustom.
                         </div>
                       ) : (
-                        filteredReferences.map((item, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            onMouseDown={(e) => {
-                              e.preventDefault();
-                              handleSelectReference(item);
-                            }}
-                            onTouchStart={(e) => {
-                              e.preventDefault();
-                              handleSelectReference(item);
-                            }}
-                            className="w-full text-left p-3 hover:bg-slate-50 dark:hover:bg-slate-800 flex flex-col gap-0.5 transition-colors cursor-pointer"
-                          >
-                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{item.namaUsaha}</span>
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
-                              KBLI: {item.kbli} | Kategori: {item.kategori} | Produk: {item.produkUtama}
-                            </span>
-                          </button>
-                        ))
+                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                          {filteredReferences.map((item, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                handleSelectReference(item);
+                              }}
+                              onTouchStart={(e) => {
+                                e.preventDefault();
+                                handleSelectReference(item);
+                              }}
+                              style={{animation: `itemSlideIn 0.12s ease-out ${idx * 0.03}s both`}}
+                              className={`w-full text-left px-3 py-2.5 flex items-center gap-3 transition-all duration-150 cursor-pointer group ${
+                                identity.namaUsaha === item.namaUsaha
+                                  ? 'bg-bps-blue/8 dark:bg-bps-blue/15 border-l-2 border-bps-blue'
+                                  : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 border-l-2 border-transparent hover:border-bps-blue-light/40'
+                              }`}
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className={`text-xs font-bold truncate ${
+                                    identity.namaUsaha === item.namaUsaha
+                                      ? 'text-bps-blue dark:text-bps-blue-light'
+                                      : 'text-slate-800 dark:text-slate-200 group-hover:text-bps-blue dark:group-hover:text-bps-blue-light'
+                                  } transition-colors`}>
+                                    {item.namaUsaha}
+                                  </span>
+                                  <span className="px-1.5 py-0.5 bg-bps-blue/10 dark:bg-bps-blue/20 text-bps-blue dark:text-bps-blue-light text-[9px] font-bold rounded-full shrink-0">
+                                    {item.kategori}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium block truncate mt-0.5">
+                                  KBLI {item.kbli} · {item.produkUtama}
+                                </span>
+                              </div>
+                              {identity.namaUsaha === item.namaUsaha && (
+                                <svg className="w-4 h-4 text-bps-blue dark:text-bps-blue-light shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
                   )}
