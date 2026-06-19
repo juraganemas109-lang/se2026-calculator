@@ -475,8 +475,8 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
                     }}
                     onFocus={() => setIsDropdownOpen(true)}
                     onBlur={() => {
-                      // Delay to allow onMouseDown on option buttons to execute first
-                      setTimeout(() => setIsDropdownOpen(false), 200);
+                      // Longer delay for Android touch events which are slower than mouse
+                      setTimeout(() => setIsDropdownOpen(false), 350);
                     }}
                     className={`w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border focus:outline-none focus:ring-2 focus:ring-bps-blue-light/20 focus:border-bps-blue-light transition-all ${
                       getFieldError('identity.namaUsaha') ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
@@ -484,7 +484,10 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
                     placeholder="Contoh: Pertanian Padi Hibrida"
                   />
                   {isDropdownOpen && (
-                    <div className="absolute z-50 w-full mt-1 max-h-64 overflow-y-auto bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden" style={{animation: 'dropdownIn 0.15s ease-out'}}>
+                    <div
+                      className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xl"
+                      style={{animation: 'dropdownIn 0.15s ease-out', maxHeight: '15rem', overflowY: 'auto', WebkitOverflowScrolling: 'touch'}}
+                    >
                       <style>{`
                         @keyframes dropdownIn {
                           from { opacity: 0; transform: translateY(-6px) scaleY(0.97); }
@@ -510,15 +513,16 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
                                 e.preventDefault();
                                 handleSelectReference(item);
                               }}
-                              onTouchStart={(e) => {
+                              onTouchEnd={(e) => {
+                                // onTouchEnd instead of onTouchStart so scroll gesture isn't blocked
                                 e.preventDefault();
                                 handleSelectReference(item);
                               }}
                               style={{animation: `itemSlideIn 0.12s ease-out ${idx * 0.03}s both`}}
-                              className={`w-full text-left px-3 py-2.5 flex items-center gap-3 transition-all duration-150 cursor-pointer group ${
+                              className={`w-full text-left px-3 py-3 flex items-center gap-3 transition-all duration-150 cursor-pointer group ${
                                 identity.namaUsaha === item.namaUsaha
                                   ? 'bg-bps-blue/8 dark:bg-bps-blue/15 border-l-2 border-bps-blue'
-                                  : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 border-l-2 border-transparent hover:border-bps-blue-light/40'
+                                  : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 active:bg-bps-blue/5 border-l-2 border-transparent hover:border-bps-blue-light/40'
                               }`}
                             >
                               <div className="flex-1 min-w-0">
