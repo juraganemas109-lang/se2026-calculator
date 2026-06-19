@@ -1,0 +1,36 @@
+{
+  "name": "se2026-calculator",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "15.1.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "recharts": "^2.15.0",
+    "xlsx": "^0.18.5",
+    "jspdf": "^2.5.2",
+    "html2canvas": "^1.4.1",
+    "lucide-react": "^0.468.0",
+    "canvas-confetti": "^1.9.3",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.2",
+    "@types/canvas-confetti": "^1.6.4",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.4",
+    "autoprefixer": "^10.4.19",
+    "typescript": "^5.5.2",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "15.1.0"
+  }
+}

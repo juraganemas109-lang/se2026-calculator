@@ -1,0 +1,202 @@
+[
+  {
+    "namaUsaha": "Pertanian padi hibrida",
+    "kategori": "A",
+    "kbli": "01121",
+    "kegiatanUtama": "Budidaya tanaman padi hibrida.",
+    "produkUtama": "Gabah padi hibrida.",
+    "contohProduk": "Gabah kering panen, beras."
+  },
+  {
+    "namaUsaha": "Pertanian padi inbrida",
+    "kategori": "A",
+    "kbli": "01122",
+    "kegiatanUtama": "Budidaya tanaman padi inbrida.",
+    "produkUtama": "Gabah padi inbrida.",
+    "contohProduk": "Gabah kering panen, beras."
+  },
+  {
+    "namaUsaha": "Pertanian tembakau",
+    "kategori": "A",
+    "kbli": "01150",
+    "kegiatanUtama": "Budidaya dan pemanenan daun tembakau.",
+    "produkUtama": "Daun tembakau mentah.",
+    "contohProduk": "Daun tembakau hijau, bibit tembakau."
+  },
+  {
+    "namaUsaha": "Pertanian sayur daun",
+    "kategori": "A",
+    "kbli": "01131",
+    "kegiatanUtama": "Budidaya tanaman sayuran daun hijau.",
+    "produkUtama": "Sayuran daun segar.",
+    "contohProduk": "Bayam, kangkung, sawi, kubis."
+  },
+  {
+    "namaUsaha": "Pertanian sayur buah",
+    "kategori": "A",
+    "kbli": "01133",
+    "kegiatanUtama": "Budidaya tanaman sayuran berbuah.",
+    "produkUtama": "Sayuran buah segar.",
+    "contohProduk": "Tomat, terong, kacang panjang."
+  },
+  {
+    "namaUsaha": "Pertanian buah semusim",
+    "kategori": "A",
+    "kbli": "01132",
+    "kegiatanUtama": "Budidaya buah-buahan berumur pendek.",
+    "produkUtama": "Buah semusim segar.",
+    "contohProduk": "Semangka, melon, blewah."
+  },
+  {
+    "namaUsaha": "Pertanian ubi kayu (singkong)",
+    "kategori": "A",
+    "kbli": "01135",
+    "kegiatanUtama": "Budidaya tanaman singkong/ubi kayu.",
+    "produkUtama": "Umbi singkong segar.",
+    "contohProduk": "Singkong utuh, daun singkong."
+  },
+  {
+    "namaUsaha": "Pertanian cabai",
+    "kategori": "A",
+    "kbli": "01138",
+    "kegiatanUtama": "Budidaya berbagai jenis tanaman cabai.",
+    "produkUtama": "Cabai segar.",
+    "contohProduk": "Cabai rawit, cabai merah besar, cabai keriting."
+  },
+  {
+    "namaUsaha": "Pertanian jagung",
+    "kategori": "A",
+    "kbli": "01111",
+    "kegiatanUtama": "Budidaya tanaman jagung.",
+    "produkUtama": "Jagung pipilan atau bonggol.",
+    "contohProduk": "Jagung manis, jagung pakan."
+  },
+  {
+    "namaUsaha": "Pertanian talas",
+    "kategori": "A",
+    "kbli": "01139",
+    "kegiatanUtama": "Budidaya umbi-umbian talas.",
+    "produkUtama": "Umbi talas segar.",
+    "contohProduk": "Talas bogor, talas beneng."
+  },
+  {
+    "namaUsaha": "Pertanian kacang tanah",
+    "kategori": "A",
+    "kbli": "01114",
+    "kegiatanUtama": "Budidaya tanaman kacang tanah.",
+    "produkUtama": "Kacang tanah basah/kering.",
+    "contohProduk": "Kacang tanah polong, biji kacang tanah."
+  },
+  {
+    "namaUsaha": "Peternakan sapi",
+    "kategori": "A",
+    "kbli": "01411",
+    "kegiatanUtama": "Pembibitan dan budidaya sapi potong.",
+    "produkUtama": "Sapi hidup.",
+    "contohProduk": "Sapi potong, anak sapi (pedet)."
+  },
+  {
+    "namaUsaha": "Peternakan kambing",
+    "kategori": "A",
+    "kbli": "01442",
+    "kegiatanUtama": "Pembibitan dan budidaya kambing potong.",
+    "produkUtama": "Kambing hidup.",
+    "contohProduk": "Kambing potong, susu kambing mentah."
+  },
+  {
+    "namaUsaha": "Peternakan ayam ras pedaging",
+    "kategori": "A",
+    "kbli": "01461",
+    "kegiatanUtama": "Budidaya ayam potong broiler.",
+    "produkUtama": "Ayam pedaging hidup.",
+    "contohProduk": "Ayam broiler."
+  },
+  {
+    "namaUsaha": "Peternakan ayam ras petelur",
+    "kategori": "A",
+    "kbli": "01462",
+    "kegiatanUtama": "Budidaya ayam petelur (layer).",
+    "produkUtama": "Telur ayam ras.",
+    "contohProduk": "Telur ayam, ayam petelur afkir."
+  },
+  {
+    "namaUsaha": "Peternakan ayam kampung/lokal",
+    "kategori": "A",
+    "kbli": "01463",
+    "kegiatanUtama": "Budidaya ayam buras atau ayam kampung.",
+    "produkUtama": "Ayam kampung dan telurnya.",
+    "contohProduk": "Daging ayam kampung, telur ayam kampung."
+  },
+  {
+    "namaUsaha": "Industri perajangan tembakau",
+    "kategori": "C",
+    "kbli": "12004",
+    "kegiatanUtama": "Merajang dan mengolah daun tembakau.",
+    "produkUtama": "Tembakau rajangan.",
+    "contohProduk": "Tembakau rajangan siap jual."
+  },
+  {
+    "namaUsaha": "Perdagangan tembakau",
+    "kategori": "G",
+    "kbli": "46206",
+    "kegiatanUtama": "Perdagangan besar dan pengepul hasil tembakau.",
+    "produkUtama": "Tembakau mentah dan rajangan.",
+    "contohProduk": "Tembakau kering borongan."
+  },
+  {
+    "namaUsaha": "Sewa mesin rajang tembakau",
+    "kategori": "N",
+    "kbli": "77306",
+    "kegiatanUtama": "Menyewakan mesin pertanian (perajang).",
+    "produkUtama": "Jasa sewa mesin.",
+    "contohProduk": "Sewa harian/borongan mesin perajang."
+  },
+  {
+    "namaUsaha": "Toko pracangan/kelontong",
+    "kategori": "G",
+    "kbli": "47112",
+    "kegiatanUtama": "Menjual berbagai kebutuhan sehari-hari eceran.",
+    "produkUtama": "Sembako, makanan ringan, minuman.",
+    "contohProduk": "Beras, minyak goreng, sabun, makanan ringan."
+  },
+  {
+    "namaUsaha": "Toko bangunan",
+    "kategori": "G",
+    "kbli": "47521",
+    "kegiatanUtama": "Perdagangan eceran bahan konstruksi dan material.",
+    "produkUtama": "Material bangunan.",
+    "contohProduk": "Semen, paku, cat, pasir, keramik."
+  },
+  {
+    "namaUsaha": "Bengkel sepeda motor",
+    "kategori": "G",
+    "kbli": "45407",
+    "kegiatanUtama": "Reparasi dan pemeliharaan sepeda motor.",
+    "produkUtama": "Jasa servis dan onderdil.",
+    "contohProduk": "Ganti oli, tambal ban, servis mesin."
+  },
+  {
+    "namaUsaha": "Usaha laundry pakaian",
+    "kategori": "S",
+    "kbli": "96211",
+    "kegiatanUtama": "Jasa cuci dan setrika pakaian.",
+    "produkUtama": "Jasa laundry.",
+    "contohProduk": "Cuci kering, setrika, cuci sepatu."
+  },
+  {
+    "namaUsaha": "Salon kecantikan",
+    "kategori": "S",
+    "kbli": "96112",
+    "kegiatanUtama": "Jasa tata rambut dan perawatan kecantikan kulit.",
+    "produkUtama": "Jasa kecantikan.",
+    "contohProduk": "Potong rambut, facial, lulur."
+  },
+  {
+    "namaUsaha": "Konter pulsa dan aksesoris HP",
+    "kategori": "G",
+    "kbli": "47413",
+    "kegiatanUtama": "Penjualan pulsa, paket data, dan alat telekomunikasi.",
+    "produkUtama": "Pulsa, voucher data, aksesoris.",
+    "contohProduk": "Pulsa all operator, kabel charger, anti gores."
+  }
+]

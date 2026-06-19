@@ -1,0 +1,373 @@
+[
+  {
+    "namaUsaha": "Pertanian padi hibrida",
+    "kbli": "01121",
+    "kategori": "A",
+    "kegiatanUtama": "Pertanian Padi Hibrida",
+    "produkUtama": "Gabah Padi Hibrida"
+  },
+  {
+    "namaUsaha": "Pertanian padi inbrida",
+    "kbli": "01122",
+    "kategori": "A",
+    "kegiatanUtama": "Pertanian Padi Inbrida",
+    "produkUtama": "Gabah Padi Inbrida"
+  },
+  {
+    "namaUsaha": "Pertanian tembakau",
+    "kbli": "01150",
+    "kategori": "A",
+    "kegiatanUtama": "Pertanian Tembakau",
+    "produkUtama": "Daun Tembakau Kering/Basah"
+  },
+  {
+    "namaUsaha": "Pertanian sayur daun",
+    "kbli": "01131",
+    "kategori": "A",
+    "kegiatanUtama": "Pertanian Sayuran Daun",
+    "produkUtama": "Bayam, Kangkung, Sawi"
+  },
+  {
+    "namaUsaha": "Pertanian sayur buah",
+    "kbli": "01133",
+    "kategori": "A",
+    "kegiatanUtama": "Pertanian Sayuran Buah",
+    "produkUtama": "Tomat, Terung, Ketimun"
+  },
+  {
+    "namaUsaha": "Pertanian buah semusim",
+    "kbli": "01132",
+    "kategori": "A",
+    "kegiatanUtama": "Pertanian Buah Semusim",
+    "produkUtama": "Semangka, Melon, Stroberi"
+  },
+  {
+    "namaUsaha": "Pertanian ubi kayu (singkong)",
+    "kbli": "01135",
+    "kategori": "A",
+    "kegiatanUtama": "Pertanian Ubi Kayu (Singkong)",
+    "produkUtama": "Singkong / Ubi Kayu Basah"
+  },
+  {
+    "namaUsaha": "Pertanian cabai",
+    "kbli": "01138",
+    "kategori": "A",
+    "kegiatanUtama": "Pertanian Cabai",
+    "produkUtama": "Cabai Merah, Cabai Rawit"
+  },
+  {
+    "namaUsaha": "Pertanian jagung",
+    "kbli": "01111",
+    "kategori": "A",
+    "kegiatanUtama": "Pertanian Jagung",
+    "produkUtama": "Jagung Pipilan / Jagung Tongkol"
+  },
+  {
+    "namaUsaha": "Pertanian talas",
+    "kbli": "01139",
+    "kategori": "A",
+    "kegiatanUtama": "Pertanian Talas / Umbi-umbian",
+    "produkUtama": "Umbi Talas Basah"
+  },
+  {
+    "namaUsaha": "Pertanian kacang tanah",
+    "kbli": "01114",
+    "kategori": "A",
+    "kegiatanUtama": "Pertanian Kacang Tanah",
+    "produkUtama": "Kacang Tanah Polong"
+  },
+  {
+    "namaUsaha": "Peternakan sapi",
+    "kbli": "01411",
+    "kategori": "A",
+    "kegiatanUtama": "Pembibitan dan Budidaya Sapi Potong",
+    "produkUtama": "Sapi Potong Hidup"
+  },
+  {
+    "namaUsaha": "Peternakan kambing",
+    "kbli": "01442",
+    "kategori": "A",
+    "kegiatanUtama": "Budidaya Kambing Potong",
+    "produkUtama": "Kambing Potong Hidup"
+  },
+  {
+    "namaUsaha": "Peternakan ayam ras pedaging",
+    "kbli": "01461",
+    "kategori": "A",
+    "kegiatanUtama": "Budidaya Ayam Ras Pedaging (Broiler)",
+    "produkUtama": "Ayam Pedaging Hidup"
+  },
+  {
+    "namaUsaha": "Peternakan ayam ras petelur",
+    "kbli": "01462",
+    "kategori": "A",
+    "kegiatanUtama": "Budidaya Ayam Ras Petelur",
+    "produkUtama": "Telur Ayam Ras"
+  },
+  {
+    "namaUsaha": "Peternakan ayam kampung/lokal",
+    "kbli": "01464",
+    "kategori": "A",
+    "kegiatanUtama": "Budidaya Ayam Kampung / Lokal",
+    "produkUtama": "Ayam Kampung Hidup / Telur Ayam Kampung"
+  },
+  {
+    "namaUsaha": "Peternakan itik/bebek",
+    "kbli": "01465",
+    "kategori": "A",
+    "kegiatanUtama": "Budidaya Itik / Bebek",
+    "produkUtama": "Bebek Hidup / Telur Bebek"
+  },
+  {
+    "namaUsaha": "Penggalian tanah liat",
+    "kbli": "08105",
+    "kategori": "B",
+    "kegiatanUtama": "Penggalian Tanah Liat dan Kaolin",
+    "produkUtama": "Tanah Liat Basah / Mentah"
+  },
+  {
+    "namaUsaha": "Industri perajangan tembakau",
+    "kbli": "12004",
+    "kategori": "C",
+    "kegiatanUtama": "Industri Perajangan Tembakau",
+    "produkUtama": "Tembakau Rajang Kering"
+  },
+  {
+    "namaUsaha": "Industri pakaian jadi",
+    "kbli": "14120",
+    "kategori": "C",
+    "kegiatanUtama": "Pembuatan Pakaian Jadi Konveksi",
+    "produkUtama": "Kaos, Kemeja, Seragam"
+  },
+  {
+    "namaUsaha": "Industri pakaian jadi lainnya",
+    "kbli": "14111",
+    "kategori": "C",
+    "kegiatanUtama": "Pembuatan Pakaian Jadi Penjahit (Custom)",
+    "produkUtama": "Pakaian Custom / Jas / Kebaya"
+  },
+  {
+    "namaUsaha": "Industri genteng",
+    "kbli": "23922",
+    "kategori": "C",
+    "kegiatanUtama": "Industri Pembuatan Genteng dari Tanah Liat",
+    "produkUtama": "Genteng Tanah Liat / Genteng Pres"
+  },
+  {
+    "namaUsaha": "Mebeller",
+    "kbli": "31011",
+    "kategori": "C",
+    "kegiatanUtama": "Industri Furnitur / Mebel Kayu",
+    "produkUtama": "Kursi, Lemari, Meja Kayu"
+  },
+  {
+    "namaUsaha": "Industri krupuk",
+    "kbli": "10794",
+    "kategori": "C",
+    "kegiatanUtama": "Pembuatan Kerupuk Tradisional",
+    "produkUtama": "Kerupuk Udang / Kerupuk Aci Matang atau Mentah"
+  },
+  {
+    "namaUsaha": "Industri rengginang",
+    "kbli": "10794",
+    "kategori": "C",
+    "kegiatanUtama": "Pembuatan Rengginang Ketan",
+    "produkUtama": "Rengginang Kering / Rengginang Siap Makan"
+  },
+  {
+    "namaUsaha": "Industri penggilingan padi",
+    "kbli": "10631",
+    "kategori": "C",
+    "kegiatanUtama": "Jasa Penggilingan Padi dan Penyosohan",
+    "produkUtama": "Beras Putih, Dedak Padi"
+  },
+  {
+    "namaUsaha": "Jual pulsa dan token listrik",
+    "kbli": "35401",
+    "kategori": "D",
+    "kegiatanUtama": "Kios Penjual Token Listrik dan Pulsa Utilitas",
+    "produkUtama": "Token Listrik PLN, Pembayaran Tagihan"
+  },
+  {
+    "namaUsaha": "Jual pulsa dan paket data",
+    "kbli": "61209",
+    "kategori": "K",
+    "kegiatanUtama": "Konter Penjualan Pulsa Seluler dan Paket Data",
+    "produkUtama": "Pulsa Telepon, Paket Data Internet"
+  },
+  {
+    "namaUsaha": "Perdagangan tembakau",
+    "kbli": "46335",
+    "kategori": "G",
+    "kegiatanUtama": "Perdagangan Besar Tembakau Rajang / Daun",
+    "produkUtama": "Tembakau Kering / Tembakau Bal-balan"
+  },
+  {
+    "namaUsaha": "Toko pracangan/kelontong",
+    "kbli": "47112",
+    "kategori": "G",
+    "kegiatanUtama": "Perdagangan Eceran Barang Kebutuhan Pokok",
+    "produkUtama": "Sembako, Minyak, Gula, Sabun"
+  },
+  {
+    "namaUsaha": "Perdagangan pertamax/pertalite",
+    "kbli": "47301",
+    "kategori": "G",
+    "kegiatanUtama": "Pengecer Bahan Bakar Minyak (Pertamini/Kios)",
+    "produkUtama": "Pertalite, Pertamax Eceran"
+  },
+  {
+    "namaUsaha": "Perdagangan mobil",
+    "kbli": "46612",
+    "kategori": "G",
+    "kegiatanUtama": "Perdagangan Besar Mobil Baru / Bekas",
+    "produkUtama": "Mobil Penumpang / Niaga"
+  },
+  {
+    "namaUsaha": "Perdagangan sepeda motor",
+    "kbli": "46632",
+    "kategori": "G",
+    "kegiatanUtama": "Perdagangan Eceran Sepeda Motor Baru / Bekas",
+    "produkUtama": "Sepeda Motor Honda, Yamaha, dll"
+  },
+  {
+    "namaUsaha": "Warung rujak dan bakso",
+    "kbli": "56101",
+    "kategori": "I",
+    "kegiatanUtama": "Rumah Minum / Warung Bakso dan Rujak",
+    "produkUtama": "Porsi Bakso, Rujak Cingur / Buah"
+  },
+  {
+    "namaUsaha": "Dapur SPPG",
+    "kbli": "56290",
+    "kategori": "I",
+    "kegiatanUtama": "Penyediaan Katering / Jasa Dapur Makanan SPPG",
+    "produkUtama": "Nasi Kotak, Makanan Katering Karyawan"
+  },
+  {
+    "namaUsaha": "Menjual nasi rames/ayam goreng",
+    "kbli": "56101",
+    "kategori": "I",
+    "kegiatanUtama": "Warung Makan Nasi Rames dan Ayam Goreng",
+    "produkUtama": "Nasi Rames, Ayam Goreng / Bakar"
+  },
+  {
+    "namaUsaha": "Menjual pentol keliling",
+    "kbli": "56102",
+    "kategori": "I",
+    "kegiatanUtama": "Klinik Penyedia Makanan Keliling (Pentol/Bakso)",
+    "produkUtama": "Pentol Bakso Tusuk"
+  },
+  {
+    "namaUsaha": "Menjual es buah",
+    "kbli": "56304",
+    "kategori": "I",
+    "kegiatanUtama": "Kedai Penyedia Minuman / Es Buah",
+    "produkUtama": "Es Buah, Es Campur, Aneka Jus"
+  },
+  {
+    "namaUsaha": "Sewa guna staging/prancak",
+    "kbli": "77393",
+    "kategori": "O",
+    "kegiatanUtama": "Penyewaan Alat Konstruksi Staging / Scaffolding",
+    "produkUtama": "Penyewaan Besi Scaffolding / Prancak"
+  },
+  {
+    "namaUsaha": "Sewa traktor pertanian",
+    "kbli": "77392",
+    "kategori": "O",
+    "kegiatanUtama": "Penyewaan Alat Pertanian Traktor",
+    "produkUtama": "Jasa Sewa Traktor / Alat Bajak"
+  },
+  {
+    "namaUsaha": "Sewa mesin rajang tembakau",
+    "kbli": "77391",
+    "kategori": "O",
+    "kegiatanUtama": "Penyewaan Mesin Rajang Daun Tembakau",
+    "produkUtama": "Sewa Alat Rajang Tembakau"
+  },
+  {
+    "namaUsaha": "TK Pemerintah",
+    "kbli": "85101",
+    "kategori": "Q",
+    "kegiatanUtama": "Pendidikan Anak Usia Dini Negeri / TK Pemerintah",
+    "produkUtama": "Jasa Layanan Pendidikan PAUD/TK"
+  },
+  {
+    "namaUsaha": "TK Swasta",
+    "kbli": "85102",
+    "kategori": "Q",
+    "kegiatanUtama": "Pendidikan Anak Usia Dini Swasta",
+    "produkUtama": "Jasa Layanan Pendidikan TK Swasta"
+  },
+  {
+    "namaUsaha": "RA Raudhatul Athfal",
+    "kbli": "85103",
+    "kategori": "Q",
+    "kegiatanUtama": "Pendidikan Islam Raudhatul Athfal",
+    "produkUtama": "Jasa Layanan Pendidikan RA Swasta"
+  },
+  {
+    "namaUsaha": "SD",
+    "kbli": "85201",
+    "kategori": "Q",
+    "kegiatanUtama": "Pendidikan Dasar Sekolah Dasar",
+    "produkUtama": "Jasa Pendidikan Tingkat SD"
+  },
+  {
+    "namaUsaha": "MI",
+    "kbli": "85203",
+    "kategori": "Q",
+    "kegiatanUtama": "Pendidikan Dasar Madrasah Ibtidaiyah",
+    "produkUtama": "Jasa Pendidikan Tingkat MI"
+  },
+  {
+    "namaUsaha": "SMP",
+    "kbli": "85311",
+    "kategori": "Q",
+    "kegiatanUtama": "Pendidikan Menengah Pertama (SMP)",
+    "produkUtama": "Jasa Pendidikan Tingkat SMP"
+  },
+  {
+    "namaUsaha": "MTs",
+    "kbli": "85313",
+    "kategori": "Q",
+    "kegiatanUtama": "Pendidikan Islam Madrasah Tsanawiyah",
+    "produkUtama": "Jasa Pendidikan Tingkat MTs"
+  },
+  {
+    "namaUsaha": "SMA",
+    "kbli": "85316",
+    "kategori": "Q",
+    "kegiatanUtama": "Pendidikan Menengah Atas (SMA)",
+    "produkUtama": "Jasa Pendidikan Tingkat SMA"
+  },
+  {
+    "namaUsaha": "MA",
+    "kbli": "85317",
+    "kategori": "Q",
+    "kegiatanUtama": "Pendidikan Islam Madrasah Aliyah",
+    "produkUtama": "Jasa Pendidikan Tingkat MA"
+  },
+  {
+    "namaUsaha": "MD Madrasah Diniyah",
+    "kbli": "85542",
+    "kategori": "Q",
+    "kegiatanUtama": "Pendidikan Madrasah Diniyah / Keagamaan",
+    "produkUtama": "Jasa Pendidikan Diniyah / Sore"
+  },
+  {
+    "namaUsaha": "Guru Ngaji",
+    "kbli": "85541",
+    "kategori": "Q",
+    "kegiatanUtama": "Jasa Pengajaran Agama / Guru Mengaji",
+    "produkUtama": "Jasa Les Mengaji Anak-anak"
+  },
+  {
+    "namaUsaha": "Tukang pijat",
+    "kbli": "86995",
+    "kategori": "R",
+    "kegiatanUtama": "Jasa Pelayanan Pijat / Kebugaran Tradisional",
+    "produkUtama": "Jasa Pijat Refleksi / Pijat Urut"
+  }
+]
