@@ -94,17 +94,9 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
     if (identity.kategoriUsaha) {
       filtered = filtered.filter(item => item.kategori === identity.kategoriUsaha);
     }
-
-    const q = (identity.namaUsaha || '').toLowerCase();
     
-    // Filter by Search Query
-    if (q) {
-      filtered = filtered.filter(item => item.namaUsaha.toLowerCase().includes(q));
-    }
-    
-    // Limit to 20 to prevent huge UI lists
-    return filtered.slice(0, 20);
-  }, [identity.namaUsaha, identity.kategoriUsaha]);
+    return filtered;
+  }, [identity.kategoriUsaha]);
 
   const handleSelectReference = (item: typeof masterUsaha[0]) => {
     setIdentity(prev => ({
@@ -461,99 +453,47 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
 
               <div className="flex flex-col gap-1.5 relative">
                 <label className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200">
-                  Nama Usaha / Cari Referensi <span className="text-red-500">*</span>
+                  Nama Usaha / Referensi <span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    required
-                    value={identity.namaUsaha}
-                    onChange={e => {
-                      const val = e.target.value;
-                      setIdentity(prev => ({ ...prev, namaUsaha: val }));
-                      setIsDropdownOpen(true);
-                    }}
-                    onFocus={() => setIsDropdownOpen(true)}
-                    onBlur={() => {
-                      // Longer delay for Android touch events which are slower than mouse
-                      setTimeout(() => setIsDropdownOpen(false), 350);
-                    }}
-                    className={`w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border focus:outline-none focus:ring-2 focus:ring-bps-blue-light/20 focus:border-bps-blue-light transition-all ${
-                      getFieldError('identity.namaUsaha') ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
-                    }`}
-                    placeholder="Contoh: Pertanian Padi Hibrida"
-                  />
-                  {isDropdownOpen && (
-                    <div
-                      className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xl"
-                      style={{animation: 'dropdownIn 0.15s ease-out', maxHeight: '15rem', overflowY: 'auto', WebkitOverflowScrolling: 'touch'}}
-                    >
-                      <style>{`
-                        @keyframes dropdownIn {
-                          from { opacity: 0; transform: translateY(-6px) scaleY(0.97); }
-                          to { opacity: 1; transform: translateY(0) scaleY(1); }
-                        }
-                        @keyframes itemSlideIn {
-                          from { opacity: 0; transform: translateX(-4px); }
-                          to { opacity: 1; transform: translateX(0); }
-                        }
-                      `}</style>
-                      {filteredReferences.length === 0 ? (
-                        <div className="p-4 text-xs text-slate-400 dark:text-slate-500 text-center">
-                          <span className="text-2xl block mb-1">🔍</span>
-                          Tidak ada referensi ditemukan. Gunakan nama kustom.
-                        </div>
-                      ) : (
-                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                          {filteredReferences.map((item, idx) => (
-                            <button
-                              key={idx}
-                              type="button"
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                handleSelectReference(item);
-                              }}
-                              onTouchEnd={(e) => {
-                                // onTouchEnd instead of onTouchStart so scroll gesture isn't blocked
-                                e.preventDefault();
-                                handleSelectReference(item);
-                              }}
-                              style={{animation: `itemSlideIn 0.12s ease-out ${idx * 0.03}s both`}}
-                              className={`w-full text-left px-3 py-3 flex items-center gap-3 transition-all duration-150 cursor-pointer group ${
-                                identity.namaUsaha === item.namaUsaha
-                                  ? 'bg-bps-blue/8 dark:bg-bps-blue/15 border-l-2 border-bps-blue'
-                                  : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 active:bg-bps-blue/5 border-l-2 border-transparent hover:border-bps-blue-light/40'
-                              }`}
-                            >
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className={`text-xs font-bold truncate ${
-                                    identity.namaUsaha === item.namaUsaha
-                                      ? 'text-bps-blue dark:text-bps-blue-light'
-                                      : 'text-slate-800 dark:text-slate-200 group-hover:text-bps-blue dark:group-hover:text-bps-blue-light'
-                                  } transition-colors`}>
-                                    {item.namaUsaha}
-                                  </span>
-                                  <span className="px-1.5 py-0.5 bg-bps-blue/10 dark:bg-bps-blue/20 text-bps-blue dark:text-bps-blue-light text-[9px] font-bold rounded-full shrink-0">
-                                    {item.kategori}
-                                  </span>
-                                </div>
-                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium block truncate mt-0.5">
-                                  KBLI {item.kbli} · {item.produkUtama}
-                                </span>
-                              </div>
-                              {identity.namaUsaha === item.namaUsaha && (
-                                <svg className="w-4 h-4 text-bps-blue dark:text-bps-blue-light shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <select
+                  required
+                  value={identity.namaUsaha}
+                  onChange={e => {
+                    const selectedName = e.target.value;
+                    if (!selectedName) {
+                      setIdentity(prev => ({ ...prev, namaUsaha: '' }));
+                      return;
+                    }
+                    const item = masterUsaha.find(u => u.namaUsaha === selectedName);
+                    if (item) {
+                      setIdentity(prev => ({
+                        ...prev,
+                        namaUsaha: item.namaUsaha,
+                        kbli: item.kbli,
+                        kategoriUsaha: item.kategori,
+                        kegiatanUtama: item.kegiatanUtama,
+                        produkUtama: item.produkUtama,
+                        contohProduk: item.contohProduk
+                      }));
+                    } else {
+                      setIdentity(prev => ({ ...prev, namaUsaha: selectedName }));
+                    }
+                  }}
+                  className={`w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border focus:outline-none focus:ring-2 focus:ring-bps-blue-light/20 focus:border-bps-blue-light transition-all ${
+                    getFieldError('identity.namaUsaha') ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  <option value="">
+                    {identity.kategoriUsaha
+                      ? `-- Pilih Usaha Kategori ${identity.kategoriUsaha} --`
+                      : '-- Pilih Kategori dulu atau ketik nama --'}
+                  </option>
+                  {filteredReferences.map((item, idx) => (
+                    <option key={idx} value={item.namaUsaha}>
+                      {item.namaUsaha} (KBLI: {item.kbli})
+                    </option>
+                  ))}
+                </select>
                 {getFieldError('identity.namaUsaha') && (
                   <span className="text-[10px] text-red-500 font-medium">{getFieldError('identity.namaUsaha')}</span>
                 )}
