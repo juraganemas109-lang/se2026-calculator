@@ -38,9 +38,8 @@ export interface RevenueModule {
 export interface AssetModule {
   nilaiTanah: number; // 28.a
   nilaiBangunan: number; // 28.b
-  nilaiMesin: number; // 28.c
-  nilaiKendaraan: number; // 28.d
-  nilaiPeralatan: number; // 28.e
+  mesinPeralatan: number; // 28.c & 28.e
+  kendaraanUsaha: number; // 28.d
   totalAset: number;
 }
 
@@ -53,6 +52,8 @@ export interface DimensionModule {
   hargaBangunanPerM2: number;
   luasTanah: number;
   luasBangunan: number;
+  modeLuasLahan: boolean;
+  luasEstimasi: number;
 }
 
 export interface BusinessRecord {
@@ -72,71 +73,76 @@ export const KATEGORI_BPS = [
   { code: 'B', name: 'Pertambangan dan Penggalian' },
   { code: 'C', name: 'Industri Pengolahan' },
   { code: 'D', name: 'Pengadaan Listrik, Gas, Uap/Air Panas Dan Udara Dingin' },
-  { code: 'E', name: 'Treatment Air, Treatment Air Limbah, Treatment dan Pemulihan Material Sampah, dan Aktivitas Remediasi' },
-  { code: 'F', name: 'Konstruksi' },
   { code: 'G', name: 'Perdagangan Besar Dan Eceran; Reparasi Dan Perawatan Mobil Dan Sepeda Motor' },
-  { code: 'H', name: 'Pengangkutan dan Pergudangan' },
   { code: 'I', name: 'Penyediaan Akomodasi Dan Penyediaan Makan Minum' },
-  { code: 'J', name: 'Informasi Dan Komunikasi' },
   { code: 'K', name: 'Aktivitas Keuangan Dan Asuransi' },
-  { code: 'L', name: 'Real Estat' },
-  { code: 'M', name: 'Aktivitas Profesional, Ilmiah Dan Teknis' },
-  { code: 'N', name: 'Aktivitas Penyewaan dan Sewa Laksana Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan dan Penunjang Usaha Lainnya' },
   { code: 'O', name: 'Administrasi Pemerintahan, Pertahanan Dan Jaminan Sosial Wajib' },
-  { code: 'P', name: 'Pendidikan' },
   { code: 'Q', name: 'Aktivitas Kesehatan Manusia Dan Aktivitas Sosial' },
   { code: 'R', name: 'Kesenian, Hiburan Dan Rekreasi' },
-  { code: 'S', name: 'Aktivitas Jasa Lainnya' },
-  { code: 'T', name: 'Aktivitas Rumah Tangga Sebagai Pemberi Kerja; Aktivitas Menghasilkan Barang Dan Jasa Oleh Rumah Tangga Yang Digunakan Sendiri Untuk Memenuhi Kebutuhan' },
-  { code: 'U', name: 'Aktivitas Badan Internasional Dan Badan Ekstra Teritorial' },
 ];
 
 export interface CommonKBLI {
   code: string;
   name: string;
   category: string; // A-U
-  subCategory: string; // Pertanian, Industri, Perdagangan, Jasa, Lainnya
-  detail: string;
+  kegiatanUtama: string;
+  produkUtama: string;
 }
 
 export const COMMON_KBLIS: CommonKBLI[] = [
-  // Pertanian
-  { code: '01111', name: 'Pertanian Padi Hibrida', category: 'A', subCategory: 'Pertanian', detail: 'Padi' },
-  { code: '01112', name: 'Pertanian Padi Non Hibrida', category: 'A', subCategory: 'Pertanian', detail: 'Padi' },
-  { code: '01113', name: 'Pertanian Jagung', category: 'A', subCategory: 'Pertanian', detail: 'Jagung' },
-  { code: '01114', name: 'Pertanian Ubi Kayu', category: 'A', subCategory: 'Pertanian', detail: 'Ubi Kayu' },
-  { code: '01131', name: 'Pertanian Hortikultura Sayuran Daun', category: 'A', subCategory: 'Pertanian', detail: 'Hortikultura' },
-  { code: '01132', name: 'Pertanian Hortikultura Buah', category: 'A', subCategory: 'Pertanian', detail: 'Hortikultura' },
-  { code: '01133', name: 'Pertanian Cabai', category: 'A', subCategory: 'Pertanian', detail: 'Cabai' },
-  { code: '01139', name: 'Pertanian Sayuran Lainnya', category: 'A', subCategory: 'Pertanian', detail: 'Sayuran' },
-  { code: '01150', name: 'Pertanian Tembakau', category: 'A', subCategory: 'Pertanian', detail: 'Tembakau' },
-  { code: '01411', name: 'Budidaya Sapi Potong', category: 'A', subCategory: 'Pertanian', detail: 'Peternakan' },
-  { code: '01461', name: 'Budidaya Ayam Ras Pedaging', category: 'A', subCategory: 'Pertanian', detail: 'Peternakan' },
-  { code: '03111', name: 'Penangkapan Ikan di Laut', category: 'A', subCategory: 'Pertanian', detail: 'Perikanan' },
-  { code: '03211', name: 'Budidaya Biota Air Asin', category: 'A', subCategory: 'Pertanian', detail: 'Perikanan' },
-
-  // Industri Pengolahan
-  { code: '12019', name: 'Industri Perajangan Tembakau', category: 'C', subCategory: 'Industri Pengolahan', detail: 'Perajangan Tembakau' },
-  { code: '10710', name: 'Industri Produk Roti dan Kue (Makanan)', category: 'C', subCategory: 'Industri Pengolahan', detail: 'Pengolahan Makanan' },
-  { code: '10792', name: 'Industri Pengolahan Tempe/Tahu', category: 'C', subCategory: 'Industri Pengolahan', detail: 'Pengolahan Makanan' },
-  { code: '11040', name: 'Industri Minuman Ringan', category: 'C', subCategory: 'Industri Pengolahan', detail: 'Pengolahan Minuman' },
-  { code: '16291', name: 'Industri Kerajinan Kayu dan Bambu', category: 'C', subCategory: 'Industri Pengolahan', detail: 'Kerajinan' },
-  { code: '32202', name: 'Industri Kerajinan Perhiasan', category: 'C', subCategory: 'Industri Pengolahan', detail: 'Kerajinan' },
-
-  // Perdagangan
-  { code: '47111', name: 'Toko Kelontong Klasik', category: 'G', subCategory: 'Perdagangan', detail: 'Toko Kelontong' },
-  { code: '47112', name: 'Warung Kelontong Tradisional', category: 'G', subCategory: 'Perdagangan', detail: 'Warung' },
-  { code: '47190', name: 'Kios Penjualan Eceran', category: 'G', subCategory: 'Perdagangan', detail: 'Kios' },
-  { code: '47528', name: 'Toko Bahan Bangunan', category: 'G', subCategory: 'Perdagangan', detail: 'Toko Bangunan' },
-  { code: '47711', name: 'Toko Pakaian / Butik', category: 'G', subCategory: 'Perdagangan', detail: 'Toko Pakaian' },
-
-  // Jasa
-  { code: '45201', name: 'Reparasi Mobil (Bengkel)', category: 'G', subCategory: 'Jasa', detail: 'Bengkel' },
-  { code: '45407', name: 'Reparasi Sepeda Motor (Bengkel)', category: 'G', subCategory: 'Jasa', detail: 'Bengkel' },
-  { code: '96201', name: 'Aktivitas Binatu (Laundry)', category: 'S', subCategory: 'Jasa', detail: 'Laundry' },
-  { code: '96112', name: 'Pangkas Rambut dan Salon Kecantikan', category: 'S', subCategory: 'Jasa', detail: 'Salon' },
-  { code: '18111', name: 'Aktivitas Percetakan Berbagai Media', category: 'C', subCategory: 'Jasa', detail: 'Percetakan' },
-  { code: '47726', name: 'Toko Eceran Alat Telekomunikasi (Konter HP)', category: 'G', subCategory: 'Jasa', detail: 'Konter HP' },
+  { code: '01121', name: 'Pertanian padi hibrida', category: 'A', kegiatanUtama: 'Menanam dan merawat padi disawah', produkUtama: 'Gabah Kering' },
+  { code: '01122', name: 'Pertanian padi Ibrida', category: 'A', kegiatanUtama: 'Menanam dan merawat padi disawah', produkUtama: 'Gabah Kering' },
+  { code: '01150', name: 'Pertanian tembakau', category: 'A', kegiatanUtama: 'Menanam dan merawat Tembakau disawah', produkUtama: 'Daun Tembakau basah' },
+  { code: '01131', name: 'Pertanian sayur daun', category: 'A', kegiatanUtama: 'Menanam dan merawat sayur disawah', produkUtama: 'Sayur' },
+  { code: '01133', name: 'Pertanian sayur buah (timun, tomat, dll)', category: 'A', kegiatanUtama: 'Menanam dan merawat sayur buah disawah', produkUtama: 'Mentimun, tomat, kacang panjang' },
+  { code: '01132', name: 'Pertanian buah semusim (mangga dll)', category: 'A', kegiatanUtama: 'Menanam dan merawat mangga dll dikebun', produkUtama: 'Mangga, pepaya, jeruk, dll' },
+  { code: '01135', name: 'Pertanian ubi kayu (singkong)', category: 'A', kegiatanUtama: 'Menanam dan merawat ubikayu dilahan', produkUtama: 'Ubi kayu atau singkong' },
+  { code: '01138', name: 'Pertanian cabai', category: 'A', kegiatanUtama: 'Menanam dan merawat cabai rawit disawah', produkUtama: 'Cabai rawit' },
+  { code: '01111', name: 'Pertanian jagung', category: 'A', kegiatanUtama: 'Menanam dan merawat jagung dilahan sendiri', produkUtama: 'Jagung' },
+  { code: '01139', name: 'Pertanian talas', category: 'A', kegiatanUtama: 'Menanam dan merawat talas dilahan sendiri', produkUtama: 'Talas' },
+  { code: '01114', name: 'Pertanian kacang tanah', category: 'A', kegiatanUtama: 'Menanam dan merawat kacang tanah dilahan sendiri', produkUtama: 'Kacang tanah' },
+  { code: '01411', name: 'Peternakan sapi', category: 'A', kegiatanUtama: 'Budi daya sapi potong', produkUtama: 'Sapi potong' },
+  { code: '01442', name: 'Peternakan Kambing', category: 'A', kegiatanUtama: 'Budi daya dan pembibitan kambing potong', produkUtama: 'Kambing potong' },
+  { code: '01461', name: 'Peternakan Ayam Ras pedaging', category: 'A', kegiatanUtama: 'Budi daya ayam ras pedaging', produkUtama: 'Ayam ras pedaging' },
+  { code: '01462', name: 'Peternakan ayam ras petelur', category: 'A', kegiatanUtama: 'Budi daya ayam ras petelur', produkUtama: 'Telur ayam ras' },
+  { code: '01464', name: 'Peternakan Ayam Kampung / lokal', category: 'A', kegiatanUtama: 'Budi daya ayam kampung / lokal', produkUtama: 'Ayam kampung' },
+  { code: '01465', name: 'Peternakan Itik atau bebek', category: 'A', kegiatanUtama: 'Budi daya Itik dan bebek', produkUtama: 'Bebek atau Itik' },
+  { code: '08105', name: 'Penggalian Tanah liat', category: 'B', kegiatanUtama: 'Menjual dan mengali tanah liat', produkUtama: 'Tanah Liat' },
+  { code: '12004', name: 'Industri Prajangan tembakau', category: 'C', kegiatanUtama: 'Merajang dan pengeringan tembakau rajang', produkUtama: 'Tembakau kering rajang' },
+  { code: '14120', name: 'Industri pakaian jadi (maklun)', category: 'C', kegiatanUtama: 'Membuat pakaian jadi sesuai pesanan (maklun)', produkUtama: 'Pakaian' },
+  { code: '14111', name: 'Industri Pakaian jadi (milik sendiri)', category: 'C', kegiatanUtama: 'Membuat pakaian jadi milik sendiri', produkUtama: 'Pakaian' },
+  { code: '23922', name: 'Industri genteng', category: 'C', kegiatanUtama: 'Membuat Genteng dari tanah liat', produkUtama: 'Genteng' },
+  { code: '31011', name: 'Mebeller', category: 'C', kegiatanUtama: 'Membuat pintu, lemari, kusen, dll', produkUtama: 'Pintu, lemari, dll' },
+  { code: '10794', name: 'Industri krupuk', category: 'C', kegiatanUtama: 'Membuat krupuk dari bahan tepung', produkUtama: 'Krupuk' },
+  { code: '10794', name: 'Industri rengginang', category: 'C', kegiatanUtama: 'Membuat rengginang dari Ketan', produkUtama: 'Rengginang' },
+  { code: '10631', name: 'Industri penggilingan padi', category: 'C', kegiatanUtama: 'Menggiling gabah menjadi beras', produkUtama: 'Beras' },
+  { code: '35401', name: 'Jual pulsa dan token listrik', category: 'D', kegiatanUtama: 'Agen penjualan tenaga listrik atau broker', produkUtama: 'Token listrik' },
+  { code: '61209', name: 'Jual pulsa dan Paket data', category: 'K', kegiatanUtama: 'Agen penjualan pulsa dan paket data di conter', produkUtama: 'Pulsa dan paket data' },
+  { code: '46335', name: 'Perdagangan tembakau', category: 'G', kegiatanUtama: 'Menjual dan membeli tembakau kering rajang', produkUtama: 'Tembakau kering rajang' },
+  { code: '47112', name: 'Toko pracangan / klontong', category: 'G', kegiatanUtama: 'Menjual berbagai macam kebutuhan sehari-hari', produkUtama: 'Makanan ringan, minyak, gula, dll' },
+  { code: '47301', name: 'Perdagangan pertamax/pertalite', category: 'G', kegiatanUtama: 'Menjual pertamax/pertalite eceran', produkUtama: 'Pertalite/pertamax' },
+  { code: '46612', name: 'Perdagangan mobil', category: 'G', kegiatanUtama: 'Menjual dan membeli mobil', produkUtama: 'Mobil' },
+  { code: '46632', name: 'Perdagangan sepeda motor', category: 'G', kegiatanUtama: 'Menjual dan membeli sepeda motor', produkUtama: 'Sepeda motor' },
+  { code: '56101', name: 'Warung rujak dan bakso', category: 'I', kegiatanUtama: 'Menjual atau menyediakan rujak dan bakso', produkUtama: 'Rujak dan bakso' },
+  { code: '56290', name: 'Dapur SPPG', category: 'I', kegiatanUtama: 'Penyediaan jasa boga periode tertentu', produkUtama: 'Nasi rames dan ayam goreng+nasi' },
+  { code: '56101', name: 'Manjual nasi rames, ayam goreng, dll', category: 'I', kegiatanUtama: 'Menyediakan nasi rames, ayam goreng, dll', produkUtama: 'Nasi rames dan ayam goreng+nasi' },
+  { code: '56102', name: 'Menjual pentol keliling', category: 'I', kegiatanUtama: 'Menjual pentol keliling', produkUtama: 'Pentol' },
+  { code: '56304', name: 'Menjual es buah', category: 'I', kegiatanUtama: 'Menjual es buah', produkUtama: 'Es buah' },
+  { code: '77393', name: 'Sewa guna stenging/prancak', category: 'O', kegiatanUtama: 'Menyewakan stenging/prancak alat kontruksi', produkUtama: 'Stenging atau prancak' },
+  { code: '77392', name: 'Sewa traktor pertanian', category: 'O', kegiatanUtama: 'Membajak lahan pertanian', produkUtama: 'Lahan siap tanam' },
+  { code: '77391', name: 'Sewa mesin rajang tembakau', category: 'O', kegiatanUtama: 'Merajang daun tembakau basah', produkUtama: 'Tembakau rajang' },
+  { code: '85101', name: 'TK. Taman kanak-kanak Pemerintah', category: 'Q', kegiatanUtama: 'Memberikan pendidikan prasekolah', produkUtama: 'Pendidikan prasekolah' },
+  { code: '85102', name: 'TK. Taman kanak-kanak swasta', category: 'Q', kegiatanUtama: 'Memberikan pendidikan prasekolah', produkUtama: 'Pendidikan prasekolah' },
+  { code: '85103', name: 'RA. Raudhatul Atfal', category: 'Q', kegiatanUtama: 'Memberikan pendidikan prasekolah', produkUtama: 'Pendidikan prasekolah' },
+  { code: '85201', name: 'SD. Sekolah dasar', category: 'Q', kegiatanUtama: 'Memberikan pendidikan dasar pada siswa', produkUtama: 'Pendidikan dasar' },
+  { code: '85203', name: 'MI. Madrasah Ibtidaiyah', category: 'Q', kegiatanUtama: 'Memberikan pedidikan dasar dan agama pada siswa', produkUtama: 'Pendidikan dasar dan agama' },
+  { code: '85311', name: 'SMP. Sekolah menengah Pertama', category: 'Q', kegiatanUtama: 'Memberikan pendidikan menengah pertama pd siswa', produkUtama: 'Pendidikan menengah pertama' },
+  { code: '85313', name: 'MTs. Madrasah Tsanawiyah', category: 'Q', kegiatanUtama: 'Memberikan pendidikan menengah dan agama pd siswa', produkUtama: 'Pendidikan menengah pertama & agama' },
+  { code: '85316', name: 'SMA, sekolah Menengah atas', category: 'Q', kegiatanUtama: 'Memberikan pendidikan menengah atas pd siswa', produkUtama: 'Pendidikan menengah atas' },
+  { code: '85317', name: 'MA. Madrasah Aliyah', category: 'Q', kegiatanUtama: 'Memberikan pendidikan menengah atas & agama pd siswa', produkUtama: 'Pendidikan menengah atas & agama' },
+  { code: '85542', name: 'MD. Madrasah diniyah', category: 'Q', kegiatanUtama: 'Mengajar madrasah diniyah', produkUtama: 'Pendidikan agama' },
+  { code: '85541', name: 'Guru ngaji', category: 'Q', kegiatanUtama: 'Mengajar anak-anak mengaji Al Quran', produkUtama: 'Membaca Al-Quran' },
+  { code: '86995', name: 'Tukang pijet', category: 'R', kegiatanUtama: 'Memijet badan klien', produkUtama: 'Kebugaran tubuh' },
 ];
 
 // Helper to format number to IDR currency style (e.g. 1.000.000)
@@ -171,7 +177,9 @@ export function calculateTotals(
   keuntunganKotor: number;
 } {
   // 1. Dimensions calculations
-  const luasTanah = dimension.panjangTanah * dimension.lebarTanah;
+  const luasTanah = dimension.modeLuasLahan 
+    ? (dimension.luasEstimasi || 0) 
+    : (dimension.panjangTanah * dimension.lebarTanah);
   const luasBangunan = dimension.panjangBangunan * dimension.lebarBangunan;
 
   // 2. Automated Asset updates
@@ -179,7 +187,7 @@ export function calculateTotals(
   const nilaiBangunan = luasBangunan * dimension.hargaBangunanPerM2;
 
   // Total Aset = Nilai Tanah + Nilai Bangunan + Mesin + Kendaraan + Peralatan
-  const totalAset = nilaiTanah + nilaiBangunan + asset.nilaiMesin + asset.nilaiKendaraan + asset.nilaiPeralatan;
+  const totalAset = nilaiTanah + nilaiBangunan + asset.mesinPeralatan + asset.kendaraanUsaha;
 
   // 3. Modul Pengeluaran
   const totalPengeluaran =

@@ -24,7 +24,9 @@ export default function Home() {
     const stored = localStorage.getItem('se2026_records');
     if (stored) {
       try {
-        setRecords(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        console.log("DATA_LOADED_FROM_DB", parsed);
+        setRecords(parsed);
       } catch (e) {
         console.error('Failed to parse stored records', e);
       }
@@ -53,6 +55,8 @@ export default function Home() {
     }
 
     saveToLocalStorage(updatedRecords);
+    console.log("DATA_SAVED", record); // Using 'record' as the savedRecord to match what user typed? No, 'updatedRecords' has all. But user asked for savedRecord, let's log the single record.
+    console.log("DATA_SAVED_ALL", updatedRecords);
     setEditRecord(null);
     setSelectedDashboardId(record.id);
     

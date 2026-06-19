@@ -11,6 +11,8 @@ interface InputRupiahProps {
   required?: boolean;
   error?: string;
   info?: string;
+  prefix?: string;
+  suffix?: string;
 }
 
 export const InputRupiah: React.FC<InputRupiahProps> = ({
@@ -23,6 +25,8 @@ export const InputRupiah: React.FC<InputRupiahProps> = ({
   required = false,
   error,
   info,
+  prefix = 'Rp',
+  suffix = '',
 }) => {
   const [displayValue, setDisplayValue] = useState<string>('0');
 
@@ -33,14 +37,24 @@ export const InputRupiah: React.FC<InputRupiahProps> = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawInput = e.target.value;
     
+    // Add logging as requested
+    if (id === 'hargaTanah' || id === 'hargaBangunan') {
+      console.log(`${id} Raw:`, rawInput);
+    }
+    
     // If input is empty, treat as 0
     if (rawInput === '') {
-      setDisplayValue('0');
+      setDisplayValue('');
       onChange(0);
       return;
     }
 
     const numeric = parseRupiah(rawInput);
+    
+    if (id === 'hargaTanah' || id === 'hargaBangunan') {
+      console.log(`${id} Parsed:`, numeric);
+    }
+
     setDisplayValue(formatRupiah(numeric));
     onChange(numeric);
   };
@@ -66,26 +80,32 @@ export const InputRupiah: React.FC<InputRupiahProps> = ({
       </label>
       
       <div className="relative flex items-center rounded-lg shadow-sm">
-        <span className="absolute left-3 text-sm font-semibold text-slate-400 select-none">
-          Rp
-        </span>
+        {prefix && (
+          <span className="absolute left-3 text-sm font-semibold text-slate-400 select-none">
+            {prefix}
+          </span>
+        )}
         <input
           id={id}
           type="text"
           inputMode="numeric"
-          pattern="[0-9]*"
           value={displayValue}
           onChange={handleChange}
           onFocus={handleFocus}
           onBlur={handleBlur}
           disabled={disabled}
           placeholder={placeholder}
-          className={`w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border focus:outline-none focus:ring-2 transition-all font-mono font-medium ${
+          className={`w-full ${prefix ? 'pl-9' : 'pl-3'} ${suffix ? 'pr-9' : 'pr-3'} py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border focus:outline-none focus:ring-2 transition-all font-mono font-medium ${
             error
               ? 'border-red-500 focus:ring-red-200 dark:focus:ring-red-950 focus:border-red-500'
               : 'border-slate-200 dark:border-slate-700 focus:ring-bps-blue-light/20 focus:border-bps-blue-light'
           } ${disabled ? 'bg-slate-100 dark:bg-slate-900 text-slate-400 cursor-not-allowed' : ''}`}
         />
+        {suffix && (
+          <span className="absolute right-3 text-sm font-semibold text-slate-400 select-none">
+            {suffix}
+          </span>
+        )}
       </div>
       
       {error && (

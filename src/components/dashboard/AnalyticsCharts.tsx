@@ -47,9 +47,8 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ record }) => {
   const assetData = [
     { name: 'Tanah', Nilai: record.asset.nilaiTanah },
     { name: 'Bangunan', Nilai: record.asset.nilaiBangunan },
-    { name: 'Mesin', Nilai: record.asset.nilaiMesin },
-    { name: 'Kendaraan', Nilai: record.asset.nilaiKendaraan },
-    { name: 'Peralatan', Nilai: record.asset.nilaiPeralatan }
+    { name: 'Mesin & Peralatan', Nilai: record.asset.mesinPeralatan },
+    { name: 'Kendaraan', Nilai: record.asset.kendaraanUsaha },
   ].filter(item => item.Nilai > 0);
 
   // Custom tooltips to match beautiful currency formatting

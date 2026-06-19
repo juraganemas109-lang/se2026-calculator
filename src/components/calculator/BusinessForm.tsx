@@ -12,6 +12,7 @@ import { InputRupiah } from '../ui/InputRupiah';
 import { Save, RefreshCw, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import masterUsaha from '@/utils/master-usaha-se2026.json';
+import { TembakauEstimator } from './TembakauEstimator';
 
 interface BusinessFormProps {
   onSave: (record: BusinessRecord) => void;
@@ -50,11 +51,12 @@ const INITIAL_STATE = {
     lebarBangunan: 0,
     hargaTanahPerM2: 0,
     hargaBangunanPerM2: 0,
+    modeLuasLahan: false,
+    luasEstimasi: 0,
   },
   asset: {
-    nilaiMesin: 0,
-    nilaiKendaraan: 0,
-    nilaiPeralatan: 0,
+    mesinPeralatan: 0,
+    kendaraanUsaha: 0,
   },
   worker: {
     pekerjaLaki: 0,
@@ -80,14 +82,26 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
 
   // KBLI Search Reference States
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const [isTembakauModalOpen, setIsTembakauModalOpen] = useState<boolean>(false);
 
   const filteredReferences = React.useMemo(() => {
+    let filtered = masterUsaha;
+    
+    // Filter by Kategori if user has selected one manually
+    if (identity.kategoriUsaha) {
+      filtered = filtered.filter(item => item.kategori === identity.kategoriUsaha);
+    }
+
     const q = (identity.namaUsaha || '').toLowerCase();
-    if (!q) return masterUsaha.slice(0, 10);
-    return masterUsaha.filter(item => 
-      item.namaUsaha.toLowerCase().includes(q)
-    );
-  }, [identity.namaUsaha]);
+    
+    // Filter by Search Query
+    if (q) {
+      filtered = filtered.filter(item => item.namaUsaha.toLowerCase().includes(q));
+    }
+    
+    // Limit to 20 to prevent huge UI lists
+    return filtered.slice(0, 20);
+  }, [identity.namaUsaha, identity.kategoriUsaha]);
 
   const handleSelectReference = (item: typeof masterUsaha[0]) => {
     setIdentity(prev => ({
@@ -129,11 +143,12 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
         lebarBangunan: editRecord.dimension.lebarBangunan,
         hargaTanahPerM2: editRecord.dimension.hargaTanahPerM2,
         hargaBangunanPerM2: editRecord.dimension.hargaBangunanPerM2,
+        modeLuasLahan: editRecord.dimension.modeLuasLahan || false,
+        luasEstimasi: editRecord.dimension.luasEstimasi || 0,
       });
       setAsset({
-        nilaiMesin: editRecord.asset.nilaiMesin,
-        nilaiKendaraan: editRecord.asset.nilaiKendaraan,
-        nilaiPeralatan: editRecord.asset.nilaiPeralatan,
+        mesinPeralatan: editRecord.asset.mesinPeralatan,
+        kendaraanUsaha: editRecord.asset.kendaraanUsaha,
       });
       if (editRecord.worker) {
         setWorker({
@@ -189,19 +204,33 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
 
   const nextStep = () => {
     if (activeStep < 5) {
-      setActiveStep(prev => prev + 1);
+      const next = activeStep + 1;
+      console.log('Current Step:', activeStep);
+      console.log('Button Action:', 'nextStep → going to step ' + next);
+      setActiveStep(next);
     }
   };
 
   const prevStep = () => {
     if (activeStep > 1) {
-      setActiveStep(prev => prev - 1);
+      const prev = activeStep - 1;
+      console.log('Current Step:', prev);
+      setActiveStep(prev);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Current Step:', activeStep);
+    console.log('Button Action:', 'handleSubmit triggered');
+
+    // Prevent saving if not on the last step
+    if (activeStep !== 5) {
+      console.warn('handleSubmit called on step', activeStep, '— blocked. This should never happen!');
+      return;
+    }
+
     // Check if there are any blocking errors (errors, not warnings)
     const hasCriticalErrors = validationErrors.some(err => err.type === 'error');
     if (hasCriticalErrors) {
@@ -219,6 +248,26 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
       asset: calculated.asset,
       dimension: calculated.dimension,
     };
+
+    const luasAsetState = { dimension, asset };
+    console.log("LUAS_ASET_STATE", luasAsetState);
+
+    const luasAsetData = {
+      panjangTanah: calculated.dimension.panjangTanah,
+      lebarTanah: calculated.dimension.lebarTanah,
+      luasTanah: calculated.dimension.luasTanah,
+      modeLuasLahan: calculated.dimension.modeLuasLahan,
+      luasEstimasi: calculated.dimension.luasEstimasi,
+      nilaiTanah: calculated.asset.nilaiTanah,
+      nilaiBangunan: calculated.asset.nilaiBangunan,
+      kendaraanUsaha: calculated.asset.kendaraanUsaha,
+      mesinPeralatan: calculated.asset.mesinPeralatan,
+      totalAset: calculated.asset.totalAset
+    };
+
+    console.log("DATA LUAS & ASET", luasAsetData);
+    console.log("PAYLOAD_BEFORE_SAVE", newRecord);
+    console.log("PAYLOAD SIMPAN", newRecord);
 
     onSave(newRecord);
     
@@ -254,6 +303,7 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
         </div>
         {editRecord && onCancelEdit && (
           <button 
+            type="button"
             onClick={onCancelEdit}
             className="text-xs font-semibold px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
           >
@@ -268,7 +318,12 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
           {steps.map((step) => (
             <button
               key={step.id}
-              onClick={() => setActiveStep(step.id)}
+              type="button"
+              onClick={() => {
+                console.log('Current Step:', step.id);
+                console.log('Button Action:', 'progress-step-click');
+                setActiveStep(step.id);
+              }}
               className="flex-1 flex flex-col items-center gap-1 focus:outline-none"
             >
               <div className="w-full flex items-center justify-center">
@@ -297,7 +352,65 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
         {/* Step 1: Identitas dan Jenis Usaha */}
         {activeStep === 1 && (
           <div className="flex flex-col gap-4 animate-fadeIn">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wide border-l-4 border-bps-blue pl-2 mb-2">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wide border-l-4 border-bps-green pl-2 mb-2">
+              Klasifikasi Jenis Usaha (Otomatis)
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  Kode KBLI (5 Digit) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={identity.kbli}
+                  onChange={e => setIdentity(prev => ({ ...prev, kbli: e.target.value }))}
+                  className={`w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border focus:outline-none focus:ring-2 focus:ring-bps-blue-light/20 focus:border-bps-blue-light transition-all ${
+                    getFieldError('identity.kbli') ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
+                  }`}
+                  placeholder="Contoh: 47111"
+                  maxLength={5}
+                />
+                {getFieldError('identity.kbli') && (
+                  <span className="text-[10px] text-red-500 font-medium">{getFieldError('identity.kbli')}</span>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  Kategori Lapangan Usaha (A-U) <span className="text-red-500">*</span>
+                </label>
+                <select
+                  onChange={e => {
+                    const newCat = e.target.value;
+                    setIdentity(prev => ({ 
+                      ...prev, 
+                      kategoriUsaha: newCat,
+                      namaUsaha: '', // Clear to show new category options
+                      kbli: '',
+                      kegiatanUtama: '',
+                      produkUtama: '',
+                      contohProduk: ''
+                    }));
+                  }}
+                  className={`w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border focus:outline-none focus:ring-2 focus:ring-bps-blue-light/20 focus:border-bps-blue-light transition-all ${
+                    getFieldError('identity.kategoriUsaha') ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  <option value="">-- Pilih Kategori --</option>
+                  {KATEGORI_BPS.map(cat => (
+                    <option key={cat.code} value={cat.code}>
+                      Kategori {cat.code} - {cat.name}
+                    </option>
+                  ))}
+                </select>
+                {getFieldError('identity.kategoriUsaha') && (
+                  <span className="text-[10px] text-red-500 font-medium">{getFieldError('identity.kategoriUsaha')}</span>
+                )}
+              </div>
+            </div>
+
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wide border-l-4 border-bps-blue pl-2 mt-4 mb-2">
               Identitas Usaha
             </h3>
             
@@ -337,7 +450,14 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
                           <button
                             key={idx}
                             type="button"
-                            onMouseDown={() => handleSelectReference(item)}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              handleSelectReference(item);
+                            }}
+                            onTouchStart={(e) => {
+                              e.preventDefault();
+                              handleSelectReference(item);
+                            }}
                             className="w-full text-left p-3 hover:bg-slate-50 dark:hover:bg-slate-800 flex flex-col gap-0.5 transition-colors cursor-pointer"
                           >
                             <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{item.namaUsaha}</span>
@@ -425,79 +545,65 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
                   className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-bps-blue-light/20 focus:border-bps-blue-light transition-all"
                   placeholder="Alamat lengkap lokasi usaha"
                 />
+                <div className="flex flex-wrap gap-2 mt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setIdentity(prev => ({ ...prev, alamat: 'Dusun Angsokah Barat 01' }))}
+                    className="text-[10px] px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-bps-blue-light/10 hover:text-bps-blue hover:border-bps-blue/30 transition-colors"
+                  >
+                    Dusun Angsokah Barat 01
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIdentity(prev => ({ ...prev, alamat: 'Dusun Tengginah 01' }))}
+                    className="text-[10px] px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-bps-blue-light/10 hover:text-bps-blue hover:border-bps-blue/30 transition-colors"
+                  >
+                    Dusun Tengginah 01
+                  </button>
+                </div>
               </div>
 
               <div className="flex flex-col gap-1.5 md:col-span-2">
                 <label className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200">
-                  Kegiatan Utama / Penjelasan Usaha (Otomatis)
+                  Kegiatan Utama / Penjelasan Usaha
                 </label>
                 <input
                   type="text"
-                  readOnly
                   value={identity.kegiatanUtama || ''}
-                  className="w-full px-3 py-2 text-sm bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none cursor-not-allowed"
-                  placeholder="Terisi otomatis dari pilihan nama usaha..."
+                  onChange={e => setIdentity(prev => ({ ...prev, kegiatanUtama: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-bps-blue-light/20 focus:border-bps-blue-light transition-all"
+                  placeholder="Deskripsi kegiatan utama"
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200">
-                  Produk Utama (Otomatis)
+                  Produk Utama
                 </label>
                 <input
                   type="text"
-                  readOnly
                   value={identity.produkUtama || ''}
-                  className="w-full px-3 py-2 text-sm bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none cursor-not-allowed"
-                  placeholder="Terisi otomatis..."
+                  onChange={e => setIdentity(prev => ({ ...prev, produkUtama: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-bps-blue-light/20 focus:border-bps-blue-light transition-all"
+                  placeholder="Produk utama yang dihasilkan"
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200">
-                  Contoh Produk (Otomatis)
+                  Contoh Produk
                 </label>
                 <input
                   type="text"
-                  readOnly
                   value={identity.contohProduk || ''}
-                  className="w-full px-3 py-2 text-sm bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none cursor-not-allowed"
-                  placeholder="Terisi otomatis..."
+                  onChange={e => setIdentity(prev => ({ ...prev, contohProduk: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-bps-blue-light/20 focus:border-bps-blue-light transition-all"
+                  placeholder="Contoh produk spesifik"
                 />
               </div>
             </div>
 
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wide border-l-4 border-bps-green pl-2 mt-4 mb-2">
-              Klasifikasi Jenis Usaha (Otomatis)
-            </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200">
-                  Kode KBLI (5 Digit)
-                </label>
-                <input
-                  type="text"
-                  readOnly
-                  value={identity.kbli}
-                  className="w-full px-3 py-2 text-sm bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none cursor-not-allowed font-mono font-bold"
-                  placeholder="Kode KBLI otomatis..."
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200">
-                  Kategori Lapangan Usaha (A-U)
-                </label>
-                <input
-                  type="text"
-                  readOnly
-                  value={identity.kategoriUsaha ? `Kategori ${identity.kategoriUsaha}` : ''}
-                  className="w-full px-3 py-2 text-sm bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none cursor-not-allowed font-bold text-bps-blue"
-                  placeholder="Kategori otomatis..."
-                />
-              </div>
-            </div>
           </div>
         )}
 
@@ -727,33 +833,86 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
             </h3>
 
             <div className="bg-slate-50 dark:bg-slate-800/30 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-              <h4 className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-3 flex items-center gap-1.5">
-                <span>Dimensi Tanah Usaha</span>
-                <span className="text-[10px] font-normal text-slate-400">({calculated.dimension.luasTanah} m² terhitung)</span>
-              </h4>
+              <div className="flex flex-col md:flex-row justify-between md:items-center gap-3 mb-4">
+                <h4 className="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                  <span>Dimensi Tanah Usaha</span>
+                  <span className="text-[10px] font-normal text-slate-400">({calculated.dimension.luasTanah} m² terhitung)</span>
+                </h4>
+                
+                {/* Mode Perhitungan Toggle */}
+                <div className="flex bg-slate-200/50 dark:bg-slate-900/50 p-1 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() => setDimension(prev => ({ ...prev, modeLuasLahan: false }))}
+                    className={`px-3 py-1.5 text-[10px] md:text-xs font-semibold rounded-md transition-all ${
+                      !dimension.modeLuasLahan 
+                        ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-slate-100' 
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    Panjang × Lebar Manual
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDimension(prev => ({ ...prev, modeLuasLahan: true }))}
+                    className={`px-3 py-1.5 text-[10px] md:text-xs font-semibold rounded-md transition-all ${
+                      dimension.modeLuasLahan 
+                        ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-slate-100' 
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    Luas Estimasi Langsung
+                  </button>
+                </div>
+              </div>
+
+              {(identity?.namaUsaha || '').toLowerCase().includes('tembakau') && (
+                <button
+                  type="button"
+                  onClick={() => setIsTembakauModalOpen(true)}
+                  className="mb-4 flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800/50 rounded-lg transition-colors w-fit"
+                >
+                  🌱 Estimasi Luas Lahan Tembakau Otomatis
+                </button>
+              )}
+
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] md:text-xs font-semibold text-slate-600 dark:text-slate-400">Panjang Tanah (m)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={dimension.panjangTanah || ''}
-                    onChange={e => setDimension(prev => ({ ...prev, panjangTanah: Number(e.target.value) || 0 }))}
-                    className="px-2 py-1.5 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md focus:outline-none focus:ring-1 focus:ring-bps-blue-light"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] md:text-xs font-semibold text-slate-600 dark:text-slate-400">Lebar Tanah (m)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={dimension.lebarTanah || ''}
-                    onChange={e => setDimension(prev => ({ ...prev, lebarTanah: Number(e.target.value) || 0 }))}
-                    className="px-2 py-1.5 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md focus:outline-none focus:ring-1 focus:ring-bps-blue-light"
-                  />
-                </div>
+                {dimension.modeLuasLahan ? (
+                  <div className="col-span-2 md:col-span-2 flex flex-col gap-1">
+                    <InputRupiah
+                      id="luasEstimasi"
+                      label="Luas Lahan Estimasi"
+                      prefix=""
+                      suffix="m²"
+                      value={dimension.luasEstimasi}
+                      onChange={val => setDimension(prev => ({ ...prev, luasEstimasi: val }))}
+                      placeholder="Masukkan luas langsung"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex flex-col gap-1">
+                      <InputRupiah
+                        id="panjangTanah"
+                        label="Panjang Tanah"
+                        prefix=""
+                        suffix="m"
+                        value={dimension.panjangTanah}
+                        onChange={val => setDimension(prev => ({ ...prev, panjangTanah: val }))}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <InputRupiah
+                        id="lebarTanah"
+                        label="Lebar Tanah"
+                        prefix=""
+                        suffix="m"
+                        value={dimension.lebarTanah}
+                        onChange={val => setDimension(prev => ({ ...prev, lebarTanah: val }))}
+                      />
+                    </div>
+                  </>
+                )}
                 <div className="col-span-2 md:col-span-1">
                   <InputRupiah
                     id="hargaTanah"
@@ -777,25 +936,23 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
               </h4>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] md:text-xs font-semibold text-slate-600 dark:text-slate-400">Panjang Bangunan (m)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={dimension.panjangBangunan || ''}
-                    onChange={e => setDimension(prev => ({ ...prev, panjangBangunan: Number(e.target.value) || 0 }))}
-                    className="px-2 py-1.5 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md focus:outline-none focus:ring-1 focus:ring-bps-blue-light"
+                  <InputRupiah
+                    id="panjangBangunan"
+                    label="Panjang Bangunan"
+                    prefix=""
+                    suffix="m"
+                    value={dimension.panjangBangunan}
+                    onChange={val => setDimension(prev => ({ ...prev, panjangBangunan: val }))}
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] md:text-xs font-semibold text-slate-600 dark:text-slate-400">Lebar Bangunan (m)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={dimension.lebarBangunan || ''}
-                    onChange={e => setDimension(prev => ({ ...prev, lebarBangunan: Number(e.target.value) || 0 }))}
-                    className="px-2 py-1.5 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md focus:outline-none focus:ring-1 focus:ring-bps-blue-light"
+                  <InputRupiah
+                    id="lebarBangunan"
+                    label="Lebar Bangunan"
+                    prefix=""
+                    suffix="m"
+                    value={dimension.lebarBangunan}
+                    onChange={val => setDimension(prev => ({ ...prev, lebarBangunan: val }))}
                   />
                 </div>
                 <div className="col-span-2 md:col-span-1">
@@ -820,27 +977,19 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InputRupiah
-                id="nilaiMesin"
-                label="28.c Nilai Mesin dan Perlengkapannya"
-                value={asset.nilaiMesin}
-                onChange={val => setAsset(prev => ({ ...prev, nilaiMesin: val }))}
-                info="Mesin produksi, traktor, genset, chiller"
+                id="mesinPeralatan"
+                label="28.c/e Mesin dan Peralatan"
+                value={asset.mesinPeralatan}
+                onChange={val => setAsset(prev => ({ ...prev, mesinPeralatan: val }))}
+                info="Mesin produksi, traktor, laptop, peralatan kantor, dll."
               />
 
               <InputRupiah
-                id="nilaiKendaraan"
-                label="28.d Nilai Kendaraan Operasional"
-                value={asset.nilaiKendaraan}
-                onChange={val => setAsset(prev => ({ ...prev, nilaiKendaraan: val }))}
+                id="kendaraanUsaha"
+                label="28.d Kendaraan Operasional"
+                value={asset.kendaraanUsaha}
+                onChange={val => setAsset(prev => ({ ...prev, kendaraanUsaha: val }))}
                 info="Motor kurir, mobil pick-up operasional"
-              />
-
-              <InputRupiah
-                id="nilaiPeralatan"
-                label="28.e Nilai Peralatan / Inventaris Kantor"
-                value={asset.nilaiPeralatan}
-                onChange={val => setAsset(prev => ({ ...prev, nilaiPeralatan: val }))}
-                info="Laptop, HP admin, meja kursi toko, etalase"
               />
 
               {/* Total Aset Summary */}
@@ -878,10 +1027,14 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
             </button>
           )}
 
-          {activeStep < 4 ? (
+          {activeStep < 5 ? (
             <button
+              key="next-btn"
               type="button"
-              onClick={nextStep}
+              onClick={(e) => {
+                e.preventDefault();
+                nextStep();
+              }}
               className="flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-bps-blue hover:bg-bps-blue-light rounded-lg active:scale-95 transition-all ml-auto"
             >
               Lanjut
@@ -889,6 +1042,7 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
             </button>
           ) : (
             <button
+              key="submit-btn"
               type="submit"
               className="flex items-center gap-1.5 px-5 py-2 text-sm font-bold text-white bg-bps-green hover:bg-bps-green-dark rounded-lg active:scale-95 transition-all shadow-md hover:shadow-lg shadow-bps-green/20 ml-auto"
             >
@@ -921,6 +1075,20 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
             </ul>
           </div>
         </div>
+      )}
+      {/* Modals */}
+      {isTembakauModalOpen && (
+        <TembakauEstimator 
+          onClose={() => setIsTembakauModalOpen(false)}
+          onApply={(luas) => {
+            setDimension(prev => ({
+              ...prev,
+              modeLuasLahan: true,
+              luasEstimasi: luas
+            }));
+            setIsTembakauModalOpen(false);
+          }}
+        />
       )}
     </div>
   );

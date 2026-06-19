@@ -26,6 +26,7 @@ const EXCEL_HEADERS = [
   '24.b1 Perempuan',
   '24.a2 Dibayar',
   '24.b2 Tidak Dibayar',
+  'Mode Luas Lahan',
   'Panjang Tanah (m)',
   'Lebar Tanah (m)',
   'Luas Tanah (m2)',
@@ -35,10 +36,8 @@ const EXCEL_HEADERS = [
   'Lebar Bangunan (m)',
   'Luas Bangunan (m2)',
   'Harga Bangunan per m2 (Rp)',
-  'Nilai Bangunan (Rp)',
-  'Nilai Mesin (Rp)',
+  'Nilai Mesin & Peralatan (Rp)',
   'Nilai Kendaraan (Rp)',
-  'Nilai Peralatan (Rp)',
   'Total Aset (Rp)',
   'Keuntungan Kotor (Rp)'
 ];
@@ -69,7 +68,7 @@ function flattenRecord(record: BusinessRecord) {
     record.worker.pekerjaLaki,
     record.worker.pekerjaPerempuan,
     record.worker.pekerjaDibayar,
-    record.worker.pekerjaTidakDibayar,
+    record.dimension.modeLuasLahan ? 'Estimasi Total' : 'Panjang x Lebar',
     record.dimension.panjangTanah,
     record.dimension.lebarTanah,
     record.dimension.luasTanah,
@@ -80,9 +79,8 @@ function flattenRecord(record: BusinessRecord) {
     record.dimension.luasBangunan,
     record.dimension.hargaBangunanPerM2,
     record.asset.nilaiBangunan,
-    record.asset.nilaiMesin,
-    record.asset.nilaiKendaraan,
-    record.asset.nilaiPeralatan,
+    record.asset.mesinPeralatan,
+    record.asset.kendaraanUsaha,
     record.asset.totalAset,
     record.revenue.totalProduksi - record.expense.totalPengeluaran
   ];
@@ -154,12 +152,10 @@ export function downloadTemplateExcel() {
       24000000, // Nilai Tanah
       6,        // P Bangunan
       5,        // L Bangunan
-      30,       // Luas Bangunan
       1500000,  // Harga Bangunan
       45000000, // Nilai Bangunan
-      0,        // Mesin
+      2000000,  // Mesin & Peralatan
       15000000, // Kendaraan
-      2000000,  // Peralatan
       86000000, // Total Aset
       7700000   // Keuntungan
     ]
@@ -229,31 +225,35 @@ export function importFromExcel(file: File): Promise<BusinessRecord[]> {
           const pendapatanLainnya = Number(row[19]) || 0;
 
           // Excel Worker columns: 21, 22, 23, 24
-          const pekerjaLaki = Number(row[21]) || 0;
-          const pekerjaPerempuan = Number(row[22]) || 0;
-          const pekerjaDibayar = Number(row[23]) || 0;
-          const pekerjaTidakDibayar = Number(row[24]) || 0;
+          const pekerjaLaki = Number(row[20]) || 0;
+          const pekerjaPerempuan = Number(row[21]) || 0;
+          const pekerjaDibayar = Number(row[22]) || 0;
+          const pekerjaTidakDibayar = Number(row[23]) || 0;
           const totalPekerjaGender = pekerjaLaki + pekerjaPerempuan;
           const totalPekerjaStatus = pekerjaDibayar + pekerjaTidakDibayar;
+          const modeLuasLahan = String(row[24] || '');
+          const isEstimasiLuas = modeLuasLahan === 'Estimasi Total';
 
           const panjangTanah = Number(row[25]) || 0;
           const lebarTanah = Number(row[26]) || 0;
+          const luasTanahExcel = Number(row[27]) || 0;
+          
+          const luasTanah = isEstimasiLuas ? luasTanahExcel : (panjangTanah * lebarTanah);
+          const luasLahanEstimasi = isEstimasiLuas ? luasTanahExcel : 0;
           const hargaTanahPerM2 = Number(row[28]) || 0;
 
           const panjangBangunan = Number(row[30]) || 0;
           const lebarBangunan = Number(row[31]) || 0;
           const hargaBangunanPerM2 = Number(row[33]) || 0;
 
-          const nilaiMesin = Number(row[35]) || 0;
-          const nilaiKendaraan = Number(row[36]) || 0;
-          const nilaiPeralatan = Number(row[37]) || 0;
+          const mesinPeralatan = Number(row[35]) || 0;
+          const kendaraanUsaha = Number(row[36]) || 0;
 
           // Re-calculate derived totals to ensure accuracy
-          const luasTanah = panjangTanah * lebarTanah;
           const luasBangunan = panjangBangunan * lebarBangunan;
           const nilaiTanah = luasTanah * hargaTanahPerM2;
           const nilaiBangunan = luasBangunan * hargaBangunanPerM2;
-          const totalAset = nilaiTanah + nilaiBangunan + nilaiMesin + nilaiKendaraan + nilaiPeralatan;
+          const totalAset = nilaiTanah + nilaiBangunan + mesinPeralatan + kendaraanUsaha;
           const totalPengeluaran = upahGaji + biayaProduksi + biayaPembelianBarang + biayaOperasional + biayaNonOperasional;
           const totalProduksi = nilaiProduksiPenjualan + pendapatanLainnya;
 
@@ -293,7 +293,9 @@ export function importFromExcel(file: File): Promise<BusinessRecord[]> {
               hargaTanahPerM2,
               hargaBangunanPerM2,
               luasTanah,
-              luasBangunan
+              luasBangunan,
+              modeLuasLahan: isEstimasiLuas,
+              luasEstimasi: luasLahanEstimasi
             },
             worker: {
               pekerjaLaki,
@@ -306,9 +308,8 @@ export function importFromExcel(file: File): Promise<BusinessRecord[]> {
             asset: {
               nilaiTanah,
               nilaiBangunan,
-              nilaiMesin,
-              nilaiKendaraan,
-              nilaiPeralatan,
+              mesinPeralatan,
+              kendaraanUsaha,
               totalAset
             }
           };

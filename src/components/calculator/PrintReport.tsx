@@ -195,16 +195,24 @@ export const PrintReport: React.FC<PrintReportProps> = ({ record }) => {
         </h3>
         <div className="grid grid-cols-2 gap-4 text-xs">
           <div className="p-3 border border-slate-200 rounded-lg">
-            <span className="font-bold text-slate-800">Dimensi Area Kerja:</span>
-            <p className="mt-1">Luas Tanah: {record.dimension.panjangTanah}m x {record.dimension.lebarTanah}m = {record.dimension.luasTanah} m²</p>
-            <p className="mt-0.5">Luas Bangunan: {record.dimension.panjangBangunan}m x {record.dimension.lebarBangunan}m = {record.dimension.luasBangunan} m²</p>
+            <div className="grid grid-cols-1 gap-2 text-sm">
+            <p className="mt-1">
+              Luas Tanah:{' '}
+              <span className="font-mono">
+                {record.dimension.modeLuasLahan 
+                  ? `${record.dimension.luasEstimasi} m² (Estimasi)`
+                  : `${record.dimension.panjangTanah}m x ${record.dimension.lebarTanah}m = ${record.dimension.luasTanah} m²`}
+              </span>
+            </p>
+            <p>Luas Bangunan: {record.dimension.panjangBangunan}m x {record.dimension.lebarBangunan}m = {record.dimension.luasBangunan} m²</p>
+            </div>
           </div>
           <div className="p-3 border border-slate-200 rounded-lg">
             <span className="font-bold text-slate-800">Komposisi Nilai Aset:</span>
             <p className="mt-1">Nilai Tanah: Rp {formatRupiah(record.asset.nilaiTanah)}</p>
             <p className="mt-0.5">Nilai Bangunan: Rp {formatRupiah(record.asset.nilaiBangunan)}</p>
-            <p className="mt-0.5">Nilai Mesin & Peralatan: Rp {formatRupiah(record.asset.nilaiMesin + record.asset.nilaiPeralatan)}</p>
-            <p className="mt-0.5">Nilai Kendaraan: Rp {formatRupiah(record.asset.nilaiKendaraan)}</p>
+            <p className="mt-0.5">Nilai Mesin & Peralatan: Rp {formatRupiah(record.asset.mesinPeralatan)}</p>
+            <p className="mt-0.5">Nilai Kendaraan: Rp {formatRupiah(record.asset.kendaraanUsaha)}</p>
           </div>
         </div>
         <div className="mt-3 text-right text-xs">
