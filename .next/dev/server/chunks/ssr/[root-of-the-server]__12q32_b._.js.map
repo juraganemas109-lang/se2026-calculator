@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///D:/tado/apk%20web/src/components/PwaRegistrar.tsx"],"sourcesContent":["'use client';\n\nimport { useEffect } from 'react';\n\nexport default function PwaRegistrar() {\n  useEffect(() => {\n    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {\n      const isLocalhost = \n        window.location.hostname === 'localhost' || \n        window.location.hostname === '127.0.0.1' || \n        window.location.hostname.startsWith('192.168.'); // local network IP\n      \n      const isHttps = window.location.protocol === 'https:';\n\n      if (isHttps || isLocalhost) {\n        window.navigator.serviceWorker.register('/sw.js')\n          .then((reg) => {\n            console.log('Service Worker registered successfully. Scope:', reg.scope);\n          })\n          .catch((err) => {\n            console.error('Service Worker registration failed:', err);\n          });\n      }\n    }\n  }, []);\n\n  return null;\n}\n"],"names":["PwaRegistrar","navigator"],"mappings":";;;;AAEA;AAFA;;AAIe,SAASA;IACtB,IAAA,kNAAS,EAAC;QACR,IAAI,kDAAkB,eAAe,mBAAmBC;;IAkB1D,GAAG,EAAE;IAEL,OAAO;AACT"}}]
-}

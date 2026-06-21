@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   BusinessRecord, 
   COMMON_KBLIS, 
@@ -6,7 +6,8 @@ import {
   calculateTotals, 
   validateSE2026Data, 
   ValidationError,
-  formatRupiah 
+  formatRupiah,
+  parseRupiah
 } from '@/utils/calculatorHelper';
 import { InputRupiah } from '../ui/InputRupiah';
 import { Save, RefreshCw, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle, Info } from 'lucide-react';
@@ -79,6 +80,18 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
   const [revenue, setRevenue] = useState(INITIAL_STATE.revenue);
   const [dimension, setDimension] = useState(INITIAL_STATE.dimension);
   const [asset, setAsset] = useState(INITIAL_STATE.asset);
+  const [modeKepadatan, setModeKepadatan] = useState<'Normal' | 'Padat' | 'Renggang'>('Normal');
+  const [jenisTembakau, setJenisTembakau] = useState<'Sawah' | 'Tegal' | 'Gunung'>('Sawah');
+  const [modeTanamPertanian, setModeTanamPertanian] = useState<'Normal' | 'Padat' | 'Renggang'>('Normal');
+  const [jumlahSakPadi, setJumlahSakPadi] = useState<string>('');
+  const [jenisPenjualanPadi, setJenisPenjualanPadi] = useState<string>('Gabah Kering Panen (GKP)');
+  const [modeCadanganPadi, setModeCadanganPadi] = useState<boolean>(false);
+
+  const [jumlahPohonPrajangan, setJumlahPohonPrajangan] = useState<string>('');
+  const [jenisTembakauPrajangan, setJenisTembakauPrajangan] = useState<'Sawah' | 'Tegal' | 'Gunung'>('Gunung');
+  const [modeTanamPrajangan, setModeTanamPrajangan] = useState<'Normal' | 'Padat' | 'Renggang'>('Normal');
+
+  const [jumlahPohonPertanian, setJumlahPohonPertanian] = useState<string>('');
 
   // Validation States
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
@@ -152,8 +165,27 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
           pekerjaDibayar: editRecord.worker.pekerjaDibayar,
           pekerjaTidakDibayar: editRecord.worker.pekerjaTidakDibayar,
         });
+      } else {
         setWorker(INITIAL_STATE.worker);
       }
+      
+      if (editRecord.analysis?.modeKepadatan) setModeKepadatan(editRecord.analysis.modeKepadatan);
+      else setModeKepadatan('Normal');
+
+      if (editRecord.analysis?.jenisTembakau) setJenisTembakau(editRecord.analysis.jenisTembakau as any);
+      if (editRecord.analysis?.modeTanam) setModeTanamPertanian(editRecord.analysis.modeTanam as any);
+      
+      if (editRecord.analysis?.jenisAnalisis === 'Pertanian Padi Hibrida') {
+        setJumlahSakPadi(editRecord.analysis.jumlahSak?.toString() || '');
+        setJenisPenjualanPadi(editRecord.analysis.jenisPenjualan || 'Gabah Kering Panen (GKP)');
+      } else if (editRecord.analysis?.jenisAnalisis === 'PRAJANGAN_TEMBAKAU') {
+        setJumlahPohonPrajangan(editRecord.analysis.jumlahPohon?.toString() || '');
+        setJenisTembakauPrajangan((editRecord.analysis.jenisTembakau as any) || 'Gunung');
+        setModeTanamPrajangan((editRecord.analysis.modeTanam as any) || 'Normal');
+      } else if (editRecord.analysis?.jenisAnalisis === 'PERTANIAN_TEMBAKAU') {
+        setJumlahPohonPertanian(editRecord.analysis.jumlahPohon?.toString() || '');
+      }
+
       setActiveStep(1);
     } else {
       resetForm();
@@ -161,7 +193,83 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
   }, [editRecord]);
 
   // Run Calculations
-  const calculated = calculateTotals(expense, revenue, dimension, asset, worker);
+  const calculated = useMemo(() => {
+    const parsedJumlahSakPadi = modeCadanganPadi ? 0 : (Number(jumlahSakPadi) || 0);
+    return calculateTotals(
+      expense,
+      revenue,
+      dimension,
+      asset,
+      worker,
+      identity,
+      modeKepadatan,
+      jenisTembakau,
+      modeTanamPertanian,
+      parsedJumlahSakPadi,
+      jenisPenjualanPadi,
+      Number(jumlahPohonPrajangan) || 0,
+      jenisTembakauPrajangan,
+      modeTanamPrajangan,
+      Number(jumlahPohonPertanian) || 0
+    );
+  }, [expense, revenue, dimension, asset, worker, identity, modeKepadatan, jenisTembakau, modeTanamPertanian, jumlahSakPadi, jenisPenjualanPadi, modeCadanganPadi, jumlahPohonPrajangan, jenisTembakauPrajangan, modeTanamPrajangan, jumlahPohonPertanian]);
+
+  // Auto-fill Nilai Produksi for Padi Hibrida
+  useEffect(() => {
+    if (identity.kategoriUsaha === 'A' && identity.kbli === '01121' && !modeCadanganPadi) {
+      const sak = Number(jumlahSakPadi) || 0;
+      let harga = 7000;
+      if (jenisPenjualanPadi === 'Beras Medium') harga = 13500;
+      else if (jenisPenjualanPadi === 'Beras Premium') harga = 16000;
+      else if (jenisPenjualanPadi === 'Beras SPHP') harga = 12000;
+
+      const prodKg = sak * 50;
+      const nilaiJual = prodKg * harga;
+
+      setRevenue(prev => {
+        if (prev.nilaiProduksiPenjualan !== nilaiJual) {
+          return { ...prev, nilaiProduksiPenjualan: nilaiJual };
+        }
+        return prev;
+      });
+    }
+  }, [jumlahSakPadi, jenisPenjualanPadi, modeCadanganPadi, identity.kategoriUsaha, identity.kbli]);
+
+  // Auto-fill Nilai Produksi for Prajangan Tembakau
+  useEffect(() => {
+    const isPrajanganTembakau = 
+      identity.kbli === '12004' || 
+      (identity.kategoriUsaha === 'C' && /Prajangan Tembakau|Rajangan Tembakau|Industri Tembakau/i.test(identity.namaUsaha));
+
+    if (isPrajanganTembakau) {
+      const pohon = Number(jumlahPohonPrajangan) || 0;
+      const hargaPerKg = jenisTembakauPrajangan === 'Sawah' ? 47685 : jenisTembakauPrajangan === 'Tegal' ? 53533 : 63500;
+      const prodKg = (pohon / 1000) * 70;
+      const nilaiJual = prodKg * hargaPerKg;
+
+      setRevenue(prev => {
+        if (prev.nilaiProduksiPenjualan !== nilaiJual) {
+          return { ...prev, nilaiProduksiPenjualan: nilaiJual };
+        }
+        return prev;
+      });
+    }
+  }, [jumlahPohonPrajangan, jenisTembakauPrajangan, identity.kategoriUsaha, identity.kbli, identity.namaUsaha]);
+
+  // Auto-fill Nilai Produksi for Pertanian Tembakau
+  useEffect(() => {
+    if (identity.kategoriUsaha === 'A' && identity.kbli === '01150') {
+      const pohon = Number(jumlahPohonPertanian) || 0;
+      const nilaiJual = pohon * 1500;
+
+      setRevenue(prev => {
+        if (prev.nilaiProduksiPenjualan !== nilaiJual) {
+          return { ...prev, nilaiProduksiPenjualan: nilaiJual };
+        }
+        return prev;
+      });
+    }
+  }, [jumlahPohonPertanian, jenisTembakau, identity.kategoriUsaha, identity.kbli]);
 
   // Validate on changes
   useEffect(() => {
@@ -376,6 +484,7 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
                   Kategori Lapangan Usaha (A-U) <span className="text-red-500">*</span>
                 </label>
                 <select
+                  value={identity.kategoriUsaha}
                   onChange={e => {
                     const newCat = e.target.value;
                     setIdentity(prev => ({ 
@@ -811,8 +920,9 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
                 label="27.a Nilai Produksi / Hasil Penjualan Utama"
                 value={revenue.nilaiProduksiPenjualan}
                 onChange={val => setRevenue(prev => ({ ...prev, nilaiProduksiPenjualan: val }))}
-                info="Hasil panen, penjualan barang dagangan, omset jasa utama"
+                info={(identity.kategoriUsaha === 'A' && identity.kbli === '01121' && !modeCadanganPadi) || (identity.kbli === '12004' || (identity.kategoriUsaha === 'C' && /Prajangan Tembakau|Rajangan Tembakau|Industri Tembakau/i.test(identity.namaUsaha))) || (identity.kategoriUsaha === 'A' && identity.kbli === '01150') ? "Diisi otomatis dari Analisis" : "Hasil panen, penjualan barang dagangan, omset jasa utama"}
                 error={getFieldError('revenue.nilaiProduksiPenjualan')}
+                disabled={(identity.kategoriUsaha === 'A' && identity.kbli === '01121' && !modeCadanganPadi) || (identity.kbli === '12004' || (identity.kategoriUsaha === 'C' && /Prajangan Tembakau|Rajangan Tembakau|Industri Tembakau/i.test(identity.namaUsaha))) || (identity.kategoriUsaha === 'A' && identity.kbli === '01150')}
               />
 
               <InputRupiah
@@ -834,14 +944,333 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
               </div>
             </div>
 
+            {/* Analisis Pertanian Tembakau */}
+            {calculated.analysis && calculated.analysis.jenisAnalisis === 'PERTANIAN_TEMBAKAU' && (
+              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800/50 mt-4 animate-fadeIn shadow-sm">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🌿</span>
+                    <h4 className="font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wide">
+                      Analisis Pertanian Tembakau
+                    </h4>
+                  </div>
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
+                    <div className="flex items-center gap-2">
+                      <label htmlFor="modeTanamPertanian" className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">Mode Tanam:</label>
+                      <select
+                        id="modeTanamPertanian"
+                        value={modeTanamPertanian}
+                        onChange={(e) => setModeTanamPertanian(e.target.value as any)}
+                        className="text-xs px-2 py-1 rounded bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      >
+                        <option value="Normal">Normal (300 m² / 1000 phn)</option>
+                        <option value="Padat">Padat (330 m² / 1000 phn)</option>
+                        <option value="Renggang">Renggang (350 m² / 1000 phn)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <div className="w-full flex flex-col gap-1.5">
+                    <label htmlFor="jumlahPohonPertanian" className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      Jumlah Pohon Tembakau *
+                    </label>
+                    <div className="relative flex items-center rounded-lg shadow-sm">
+                      <input
+                        id="jumlahPohonPertanian"
+                        type="number"
+                        min="0"
+                        step="1"
+                        inputMode="numeric"
+                        value={jumlahPohonPertanian}
+                        onChange={(e) => setJumlahPohonPertanian(e.target.value)}
+                        placeholder="Contoh: 1000"
+                        className="w-full pl-3 pr-16 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-bps-blue-light/20 focus:border-bps-blue-light transition-all font-mono font-medium"
+                      />
+                      <span className="absolute right-3 text-sm font-semibold text-slate-400 select-none">Pohon</span>
+                    </div>
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500">Sistem otomatis mengisi Nilai Produksi (27.a). Estimasi Rp 1.500/pohon.</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2 mb-4">
+                  <div className="flex justify-between items-center bg-white/60 dark:bg-slate-900/40 px-3 py-1.5 rounded border border-emerald-100 dark:border-emerald-800/30">
+                    <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">&bull; Jumlah Pohon</span>
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{(calculated.analysis.jumlahPohon || 0).toLocaleString('id-ID', { maximumFractionDigits: 0 })} Pohon</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-white/60 dark:bg-slate-900/40 px-3 py-1.5 rounded border border-emerald-100 dark:border-emerald-800/30">
+                    <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">&bull; Estimasi Luas (m²)</span>
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{(calculated.analysis.luasM2 || 0).toLocaleString('id-ID', { maximumFractionDigits: 0 })} m²</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-white/60 dark:bg-slate-900/40 px-3 py-1.5 rounded border border-emerald-100 dark:border-emerald-800/30">
+                    <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">&bull; Estimasi Luas (Ha)</span>
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{(calculated.analysis.luasHa || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Ha</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <div className="bg-emerald-100/50 dark:bg-emerald-900/40 p-3 rounded-lg border border-emerald-200 dark:border-emerald-700">
+                    <span className="text-xs uppercase font-bold text-emerald-800 dark:text-emerald-300 block mb-2">Estimasi Nilai Jual Sawah</span>
+                    <div className="font-mono text-sm text-slate-700 dark:text-slate-300">
+                      <div className="flex justify-between">
+                        <span>{(calculated.analysis.jumlahPohon || 0).toLocaleString('id-ID', { maximumFractionDigits: 0 })} Pohon &times; Rp 1.500</span>
+                      </div>
+                      <div className="border-b-2 border-emerald-300 dark:border-emerald-600 my-1"></div>
+                      <div className="flex justify-between font-bold text-base text-bps-green">
+                        <span>Rp {formatRupiah(calculated.analysis.nilaiJualSawah || 0)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-green-50 dark:bg-green-900/30 p-3 rounded-lg border border-green-200 dark:border-green-800/50">
+                    <span className="text-xs uppercase font-bold text-green-800 dark:text-green-300 block mb-2">Estimasi Laba Kotor Usaha</span>
+                    <div className="font-mono text-sm text-slate-700 dark:text-slate-300">
+                      <div className="flex justify-between">
+                        <span>Pendapatan Rp {formatRupiah(calculated.revenue.totalProduksi || 0)} &minus; Pengeluaran Rp {formatRupiah(calculated.expense.totalPengeluaran || 0)}</span>
+                      </div>
+                      <div className="border-b-2 border-green-300 dark:border-green-700 my-1"></div>
+                      <div className={`flex justify-between font-bold text-base ${calculated.keuntunganKotor >= 0 ? 'text-bps-green' : 'text-red-500'}`}>
+                        <span>Rp {formatRupiah(calculated.keuntunganKotor)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Analisis Industri Prajangan Tembakau */}
+            {calculated.analysis && calculated.analysis.jenisAnalisis === 'PRAJANGAN_TEMBAKAU' && (
+              <div className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 p-4 rounded-xl border border-yellow-200 dark:border-yellow-800/50 mt-4 animate-fadeIn shadow-sm">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🍂</span>
+                    <h4 className="font-bold text-yellow-800 dark:text-yellow-300 uppercase tracking-wide">
+                      Analisis Industri Prajangan Tembakau
+                    </h4>
+                  </div>
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
+                    <div className="flex items-center gap-2">
+                      <label htmlFor="jenisTembakauPrajangan" className="text-xs font-semibold text-yellow-700 dark:text-yellow-400">Jenis:</label>
+                      <select
+                        id="jenisTembakauPrajangan"
+                        value={jenisTembakauPrajangan}
+                        onChange={(e) => setJenisTembakauPrajangan(e.target.value as any)}
+                        className="text-xs px-2 py-1 rounded bg-white dark:bg-slate-800 border border-yellow-200 dark:border-yellow-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                      >
+                        <option value="Sawah">Sawah</option>
+                        <option value="Tegal">Tegal</option>
+                        <option value="Gunung">Gunung</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label htmlFor="modeTanamPrajangan" className="text-xs font-semibold text-yellow-700 dark:text-yellow-400">Mode Tanam:</label>
+                      <select
+                        id="modeTanamPrajangan"
+                        value={modeTanamPrajangan}
+                        onChange={(e) => setModeTanamPrajangan(e.target.value as any)}
+                        className="text-xs px-2 py-1 rounded bg-white dark:bg-slate-800 border border-yellow-200 dark:border-yellow-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                      >
+                        <option value="Normal">Normal (300 m² / 1000 phn)</option>
+                        <option value="Padat">Padat (330 m² / 1000 phn)</option>
+                        <option value="Renggang">Renggang (350 m² / 1000 phn)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <div className="w-full flex flex-col gap-1.5">
+                    <label htmlFor="jumlahPohonPrajangan" className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      Jumlah Pohon/Batang Tembakau *
+                    </label>
+                    <div className="relative flex items-center rounded-lg shadow-sm">
+                      <input
+                        id="jumlahPohonPrajangan"
+                        type="number"
+                        min="0"
+                        step="1"
+                        inputMode="numeric"
+                        value={jumlahPohonPrajangan}
+                        onChange={(e) => setJumlahPohonPrajangan(e.target.value)}
+                        placeholder="Contoh: 1000"
+                        className="w-full pl-3 pr-16 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-bps-blue-light/20 focus:border-bps-blue-light transition-all font-mono font-medium"
+                      />
+                      <span className="absolute right-3 text-sm font-semibold text-slate-400 select-none">Pohon</span>
+                    </div>
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500">Sistem otomatis mengisi Nilai Produksi (27.a). Asumsi: 1000 Pohon = 70 Kg Rajangan.</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2 mb-4">
+                  <div className="flex justify-between items-center bg-white/60 dark:bg-slate-900/40 px-3 py-1.5 rounded border border-yellow-100 dark:border-yellow-800/30">
+                    <span className="text-xs font-medium text-yellow-700 dark:text-yellow-400">&bull; Jumlah Pohon</span>
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{(calculated.analysis.jumlahPohon || 0).toLocaleString('id-ID', { maximumFractionDigits: 0 })} Pohon</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-white/60 dark:bg-slate-900/40 px-3 py-1.5 rounded border border-yellow-100 dark:border-yellow-800/30">
+                    <span className="text-xs font-medium text-yellow-700 dark:text-yellow-400">&bull; Produksi Rajangan (Kg)</span>
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{(calculated.analysis.produksiKg || 0).toLocaleString('id-ID', { maximumFractionDigits: 2 })} Kg</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-white/60 dark:bg-slate-900/40 px-3 py-1.5 rounded border border-yellow-100 dark:border-yellow-800/30">
+                    <span className="text-xs font-medium text-yellow-700 dark:text-yellow-400">&bull; Harga Acuan per Kg</span>
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-200">Rp {formatRupiah(calculated.analysis.hargaPerKg || 0)}</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-white/60 dark:bg-slate-900/40 px-3 py-1.5 rounded border border-yellow-100 dark:border-yellow-800/30">
+                    <span className="text-xs font-medium text-yellow-700 dark:text-yellow-400">&bull; Estimasi Luas (m²)</span>
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{(calculated.analysis.luasM2 || 0).toLocaleString('id-ID', { maximumFractionDigits: 0 })} m²</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-white/60 dark:bg-slate-900/40 px-3 py-1.5 rounded border border-yellow-100 dark:border-yellow-800/30">
+                    <span className="text-xs font-medium text-yellow-700 dark:text-yellow-400">&bull; Estimasi Luas (Ha)</span>
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{(calculated.analysis.luasHa || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Ha</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <div className="bg-yellow-100/50 dark:bg-yellow-900/40 p-3 rounded-lg border border-yellow-200 dark:border-yellow-700">
+                    <span className="text-xs uppercase font-bold text-yellow-800 dark:text-yellow-300 block mb-2">Estimasi Pendapatan Rajangan</span>
+                    <div className="font-mono text-sm text-slate-700 dark:text-slate-300">
+                      <div className="flex justify-between">
+                        <span>{(calculated.analysis.produksiKg || 0).toLocaleString('id-ID', { maximumFractionDigits: 2 })} Kg &times; Rp {formatRupiah(calculated.analysis.hargaPerKg || 0)}</span>
+                      </div>
+                      <div className="border-b-2 border-yellow-300 dark:border-yellow-600 my-1"></div>
+                      <div className="flex justify-between font-bold text-base text-bps-green">
+                        <span>Rp {formatRupiah(calculated.analysis.pendapatanRajangan || 0)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-green-50 dark:bg-green-900/30 p-3 rounded-lg border border-green-200 dark:border-green-800/50">
+                    <span className="text-xs uppercase font-bold text-green-800 dark:text-green-300 block mb-2">Estimasi Laba Kotor Usaha</span>
+                    <div className="font-mono text-sm text-slate-700 dark:text-slate-300">
+                      <div className="flex justify-between">
+                        <span>Pendapatan Rp {formatRupiah(calculated.revenue.totalProduksi || 0)} &minus; Pengeluaran Rp {formatRupiah(calculated.expense.totalPengeluaran || 0)}</span>
+                      </div>
+                      <div className="border-b-2 border-green-300 dark:border-green-700 my-1"></div>
+                      <div className={`flex justify-between font-bold text-base ${calculated.keuntunganKotor >= 0 ? 'text-bps-green' : 'text-red-500'}`}>
+                        <span>Rp {formatRupiah(calculated.keuntunganKotor)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Analisis Pertanian Padi Hibrida */}
+            {calculated.analysis && calculated.analysis.jenisAnalisis === 'Pertanian Padi Hibrida' && (
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-4 rounded-xl border border-amber-200 dark:border-amber-800/50 mt-4 animate-fadeIn shadow-sm">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🌾</span>
+                    <h4 className="font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wide">
+                      Analisis Pertanian Padi Hibrida
+                    </h4>
+                  </div>
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
+                    <div className="flex items-center gap-2">
+                      <label htmlFor="jenisPenjualanPadi" className="text-xs font-semibold text-amber-700 dark:text-amber-400">Jenis Penjualan:</label>
+                      <select
+                        id="jenisPenjualanPadi"
+                        value={jenisPenjualanPadi}
+                        onChange={(e) => setJenisPenjualanPadi(e.target.value)}
+                        className="text-xs px-2 py-1 rounded bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                      >
+                        <option value="Gabah Kering Panen (GKP)">Gabah Kering Panen (GKP)</option>
+                        <option value="Beras Medium">Beras Medium</option>
+                        <option value="Beras Premium">Beras Premium</option>
+                        <option value="Beras SPHP">Beras SPHP</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-amber-800 dark:text-amber-400">
+                      Metode Perhitungan
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setModeCadanganPadi(!modeCadanganPadi)}
+                      className={`text-[10px] px-2 py-1 rounded-md font-bold transition-colors ${
+                        modeCadanganPadi 
+                          ? 'bg-amber-500 text-white dark:bg-amber-600 shadow-sm' 
+                          : 'bg-white text-slate-600 border border-slate-200 hover:bg-amber-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      {modeCadanganPadi ? '✓ Hitung dari Pendapatan (Aktif)' : 'Hitung dari Pendapatan'}
+                    </button>
+                  </div>
+                  
+                  {!modeCadanganPadi ? (
+                    <div className="w-full flex flex-col gap-1.5">
+                      <label htmlFor="jumlahSakPadi" className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200">
+                        Jumlah Sak/Karung Hasil Panen *
+                      </label>
+                      <div className="relative flex items-center rounded-lg shadow-sm">
+                        <input
+                          id="jumlahSakPadi"
+                          type="number"
+                          min="0"
+                          step="1"
+                          inputMode="numeric"
+                          value={jumlahSakPadi}
+                          onChange={(e) => setJumlahSakPadi(e.target.value)}
+                          placeholder="Contoh: 40"
+                          className="w-full pl-3 pr-12 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-bps-blue-light/20 focus:border-bps-blue-light transition-all font-mono font-medium"
+                        />
+                        <span className="absolute right-3 text-sm font-semibold text-slate-400 select-none">Sak</span>
+                      </div>
+                      <span className="text-[11px] text-slate-400 dark:text-slate-500">Sistem otomatis mengisi Nilai Produksi (27.a). 1 Sak = 50 Kg</span>
+                    </div>
+                  ) : (
+                    <div className="bg-white/80 dark:bg-slate-900/50 p-3 rounded-lg border border-amber-200 dark:border-amber-700/50">
+                      <p className="text-xs text-amber-700 dark:text-amber-400">
+                        Mode Cadangan Aktif: Sistem mengestimasi Jumlah Sak dan analisis lainnya dari input <strong>27.a Nilai Produksi / Hasil Penjualan Utama</strong>.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-2 mb-4">
+                  <div className="flex justify-between items-center bg-white/60 dark:bg-slate-900/40 px-3 py-1.5 rounded border border-amber-100 dark:border-amber-800/30">
+                    <span className="text-xs font-medium text-amber-700 dark:text-amber-400">&bull; Jumlah Sak</span>
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{(calculated.analysis.jumlahSak || 0).toLocaleString('id-ID', { maximumFractionDigits: 2 })} Sak</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-white/60 dark:bg-slate-900/40 px-3 py-1.5 rounded border border-amber-100 dark:border-amber-800/30">
+                    <span className="text-xs font-medium text-amber-700 dark:text-amber-400">&bull; Produksi</span>
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{(calculated.analysis.produksiKg || 0).toLocaleString('id-ID', { maximumFractionDigits: 2 })} Kg</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-white/60 dark:bg-slate-900/40 px-3 py-1.5 rounded border border-amber-100 dark:border-amber-800/30">
+                    <span className="text-xs font-medium text-amber-700 dark:text-amber-400">&bull; Estimasi Luas (m²)</span>
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{(calculated.analysis.estimasiLuasM2 || 0).toLocaleString('id-ID', { maximumFractionDigits: 0 })} m²</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-white/60 dark:bg-slate-900/40 px-3 py-1.5 rounded border border-amber-100 dark:border-amber-800/30">
+                    <span className="text-xs font-medium text-amber-700 dark:text-amber-400">&bull; Estimasi Luas (Ha)</span>
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{(calculated.analysis.estimasiLuasHa || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Ha</span>
+                  </div>
+                </div>
+
+                <div className="bg-amber-100/50 dark:bg-amber-900/40 p-3 rounded-lg border border-amber-200 dark:border-amber-700">
+                  <span className="text-xs uppercase font-bold text-amber-800 dark:text-amber-300 block mb-2">Estimasi Nilai Jual</span>
+                  <div className="font-mono text-sm text-slate-700 dark:text-slate-300">
+                    <div className="flex justify-between">
+                      <span>{(calculated.analysis.produksiKg || 0).toLocaleString('id-ID', { maximumFractionDigits: 2 })} Kg &times; Rp {formatRupiah(calculated.analysis.hargaAcuanKg || 0)}</span>
+                    </div>
+                    <div className="border-b-2 border-amber-300 dark:border-amber-600 my-1"></div>
+                    <div className="flex justify-between font-bold text-base text-bps-green">
+                      <span>Rp {formatRupiah(calculated.analysis.estimasiNilaiJual || 0)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Profitability Panel */}
             <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-100 dark:border-blue-900 flex justify-between items-center">
               <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
                 <Info className="w-5 h-5 flex-shrink-0" />
-                <span className="text-xs md:text-sm font-semibold">Keuntungan Kotor Terhitung:</span>
+                <span className="text-xs md:text-sm font-semibold">Estimasi Laba Kotor Usaha (Pendapatan - Pengeluaran):</span>
               </div>
-              <span className={`text-sm md:text-lg font-mono font-bold ${
-                calculated.keuntunganKotor >= 0 ? 'text-bps-green' : 'text-red-500'
+              <span className={`text-base md:text-xl font-mono font-bold ml-auto px-4 py-1.5 rounded border shadow-sm ${
+                calculated.keuntunganKotor >= 0 ? 'text-bps-green bg-green-50 border-green-200' : 'text-red-600 bg-red-50 border-red-200'
               }`}>
                 Rp {formatRupiah(calculated.keuntunganKotor)}
               </span>

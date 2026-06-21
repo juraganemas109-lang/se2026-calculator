@@ -241,6 +241,11 @@ export const OfflineManager: React.FC<OfflineManagerProps> = ({
                       <td className="p-3">
                         <div className="font-mono font-bold text-bps-blue-light">{r.identity.kbli}</div>
                         <div className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">Kategori {r.identity.kategoriUsaha}</div>
+                        {r.analysis && (
+                          <div className="mt-1 flex items-center gap-1 text-[10px] text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded w-fit">
+                            🌱 Analisis Otomatis
+                          </div>
+                        )}
                       </td>
                       <td className="p-3 text-right font-mono font-bold text-bps-green">
                         Rp {formatRupiah(r.revenue.totalProduksi)}
@@ -324,6 +329,25 @@ export const OfflineManager: React.FC<OfflineManagerProps> = ({
                       <span className="text-slate-400 dark:text-slate-500 font-semibold">Estimasi Aset:</span>
                       <span className="font-mono font-bold text-slate-700 dark:text-slate-300 mt-0.5">Rp {formatRupiah(r.asset.totalAset)}</span>
                     </div>
+                    {r.analysis && (
+                      <div className="flex flex-col col-span-2 pt-1 border-t border-slate-100 dark:border-slate-800/50 mt-1">
+                        <span className={`font-semibold flex items-center gap-1 ${r.analysis.jenisAnalisis === 'Pertanian Padi Hibrida' ? 'text-amber-600 dark:text-amber-500' : 'text-emerald-600 dark:text-emerald-500'}`}>
+                          <span className="text-[10px]">{r.analysis.jenisAnalisis === 'Pertanian Padi Hibrida' ? '🌾' : '🌱'}</span> {r.analysis.jenisAnalisis === 'Pertanian Padi Hibrida' ? 'Analisis Padi Hibrida' : 'Analisis Tembakau'}
+                        </span>
+                        <span className="font-mono font-bold text-slate-700 dark:text-slate-300 mt-0.5 text-[10px]">
+                          {r.analysis.jenisAnalisis === 'Pertanian Padi Hibrida' ? (
+                            <>
+                              {formatRupiah(r.analysis.jumlahSak || 0)} Sak / {formatRupiah(r.analysis.produksiKg || 0)} Kg | Luas: {formatRupiah(r.analysis.estimasiLuasM2 || 0)} m²
+                            </>
+                          ) : (
+                            <>
+                              {formatRupiah(r.analysis.estimasiPohon || r.analysis.estimasiBatang || 0)} {r.analysis.estimasiPohon ? 'Pohon' : 'Btg'} / {formatRupiah(r.analysis.estimasiLuasM2 || 0)} m²
+                              {r.analysis.estimasiNilaiJualSawah ? ` | Nilai Jual Sawah: Rp${formatRupiah(r.analysis.estimasiNilaiJualSawah)}` : ''}
+                            </>
+                          )}
+                        </span>
+                      </div>
+                    )}
                     {r.identity.nomorHp && (
                       <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500 font-medium col-span-2">
                         <Phone className="w-3.5 h-3.5 text-slate-300" />

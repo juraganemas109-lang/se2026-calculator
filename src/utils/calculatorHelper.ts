@@ -59,6 +59,31 @@ export interface DimensionModule {
   luasEstimasi: number;
 }
 
+export interface AnalysisModule {
+  estimasiBatang?: number;
+  estimasiPohon?: number;
+  jumlahPohon?: number;
+  produksiKg?: number;
+  jumlahSak?: number;
+  estimasiLuasM2?: number;
+  luasM2?: number;
+  estimasiLuasHa?: number;
+  luasHa?: number;
+  estimasiNilaiJualSawah?: number;
+  nilaiJualSawah?: number;
+  selisihNilaiTambahPengolahan?: number;
+  estimasiNilaiJual?: number;
+  pendapatanRajangan?: number;
+  hargaPerKg?: number;
+  modeKepadatan?: 'Normal' | 'Padat' | 'Renggang';
+  modeTanam?: 'Normal' | 'Padat' | 'Renggang';
+  jenisTembakau?: 'Sawah' | 'Tegal' | 'Gunung';
+  jenisPenjualan?: string;
+  hargaAcuanKg?: number;
+  metodePerhitungan?: string;
+  jenisAnalisis?: string;
+}
+
 export interface BusinessRecord {
   id: string;
   createdAt: string;
@@ -68,6 +93,7 @@ export interface BusinessRecord {
   revenue: RevenueModule;
   asset: AssetModule;
   dimension: DimensionModule;
+  analysis?: AnalysisModule;
 }
 
 // BPS KBLI Categories A-U mapping
@@ -170,7 +196,17 @@ export function calculateTotals(
   revenue: Omit<RevenueModule, 'totalProduksi'>,
   dimension: Omit<DimensionModule, 'luasTanah' | 'luasBangunan'>,
   asset: Omit<AssetModule, 'totalAset' | 'nilaiTanah' | 'nilaiBangunan'>,
-  worker?: Omit<WorkerModule, 'totalPekerjaGender' | 'totalPekerjaStatus'>
+  worker?: Omit<WorkerModule, 'totalPekerjaGender' | 'totalPekerjaStatus'>,
+  identity?: BusinessIdentity,
+  modeKepadatan: 'Normal' | 'Padat' | 'Renggang' = 'Normal',
+  jenisTembakau: 'Sawah' | 'Tegal' | 'Gunung' = 'Sawah',
+  modeTanam: 'Normal' | 'Padat' | 'Renggang' = 'Normal',
+  jumlahSakPadi: number = 0,
+  jenisPenjualanPadi: string = 'Gabah Kering Panen (GKP)',
+  jumlahPohonPrajangan: number = 0,
+  jenisTembakauPrajangan: 'Sawah' | 'Tegal' | 'Gunung' = 'Sawah',
+  modeTanamPrajangan: 'Normal' | 'Padat' | 'Renggang' = 'Normal',
+  jumlahPohonPertanian: number = 0
 ): {
   expense: ExpenseModule;
   revenue: RevenueModule;
@@ -178,6 +214,7 @@ export function calculateTotals(
   asset: AssetModule;
   worker?: WorkerModule;
   keuntunganKotor: number;
+  analysis?: AnalysisModule;
 } {
   // 1. Dimensions calculations
   const luasTanah = dimension.modeLuasLahan 
@@ -216,6 +253,108 @@ export function calculateTotals(
     };
   }
 
+  // 7. Modul Analisis Otomatis
+  let analysis: AnalysisModule | undefined;
+  if (identity) {
+    const isPrajanganTembakau = 
+      identity.kbli === '12004' || 
+      (identity.kategoriUsaha === 'C' && /Prajangan Tembakau|Rajangan Tembakau|Industri Tembakau/i.test(identity.namaUsaha));
+
+    if (isPrajanganTembakau) {
+      const hargaPerKg = jenisTembakauPrajangan === 'Sawah' ? 47685 : jenisTembakauPrajangan === 'Tegal' ? 53533 : 63500;
+      let produksiKg = 0;
+      let pendapatanRajangan = 0;
+      let luasM2 = 0;
+      let luasHa = 0;
+
+      if (jumlahPohonPrajangan > 0) {
+        produksiKg = (jumlahPohonPrajangan / 1000) * 70;
+        pendapatanRajangan = produksiKg * hargaPerKg;
+
+        let multiplier = 300;
+        if (modeTanamPrajangan === 'Padat') multiplier = 330;
+        else if (modeTanamPrajangan === 'Renggang') multiplier = 350;
+
+        luasM2 = (jumlahPohonPrajangan / 1000) * multiplier;
+        luasHa = luasM2 / 10000;
+      }
+
+      analysis = {
+        jumlahPohon: jumlahPohonPrajangan,
+        produksiKg,
+        hargaPerKg,
+        pendapatanRajangan,
+        luasM2,
+        luasHa,
+        jenisTembakau: jenisTembakauPrajangan,
+        modeTanam: modeTanamPrajangan,
+        metodePerhitungan: 'PRAJANGAN_TEMBAKAU_BERDASARKAN_POHON',
+        jenisAnalisis: 'PRAJANGAN_TEMBAKAU'
+      };
+    } else if (identity.kategoriUsaha === 'A' && identity.kbli === '01150') {
+      let nilaiJualSawah = 0;
+      let luasM2 = 0;
+      let luasHa = 0;
+
+      if (jumlahPohonPertanian > 0) {
+        nilaiJualSawah = jumlahPohonPertanian * 1500;
+
+        let multiplier = 300;
+        if (modeTanam === 'Padat') multiplier = 330;
+        else if (modeTanam === 'Renggang') multiplier = 350;
+
+        luasM2 = (jumlahPohonPertanian / 1000) * multiplier;
+        luasHa = luasM2 / 10000;
+      }
+
+      analysis = {
+        jumlahPohon: jumlahPohonPertanian,
+        nilaiJualSawah,
+        luasM2,
+        luasHa,
+        modeTanam,
+        metodePerhitungan: 'PERTANIAN_TEMBAKAU_BERDASARKAN_POHON',
+        jenisAnalisis: 'PERTANIAN_TEMBAKAU'
+      };
+    } else if (identity.kategoriUsaha === 'A' && identity.kbli === '01121') {
+      let hargaAcuan = 7000;
+      if (jenisPenjualanPadi === 'Beras Medium') hargaAcuan = 13500;
+      else if (jenisPenjualanPadi === 'Beras Premium') hargaAcuan = 16000;
+      else if (jenisPenjualanPadi === 'Beras SPHP') hargaAcuan = 12000;
+
+      let produksiKg = 0;
+      let finalJumlahSak = 0;
+      let estimasiNilaiJual = 0;
+
+      if (jumlahSakPadi > 0) {
+        finalJumlahSak = jumlahSakPadi;
+        produksiKg = finalJumlahSak * 50;
+        estimasiNilaiJual = produksiKg * hargaAcuan;
+      } else {
+        estimasiNilaiJual = totalProduksi;
+        produksiKg = totalProduksi / hargaAcuan;
+        finalJumlahSak = produksiKg / 50;
+      }
+
+      const estimasiPohon = (finalJumlahSak / 4) * 1000;
+      const estimasiLuasM2 = (estimasiPohon / 1000) * 300;
+      const estimasiLuasHa = estimasiLuasM2 / 10000;
+
+      analysis = {
+        jumlahSak: finalJumlahSak,
+        produksiKg,
+        estimasiPohon,
+        estimasiLuasM2,
+        estimasiLuasHa,
+        jenisPenjualan: jenisPenjualanPadi,
+        hargaAcuanKg: hargaAcuan,
+        estimasiNilaiJual,
+        metodePerhitungan: jumlahSakPadi > 0 ? 'PADI_HIBRIDA_BERDASARKAN_SAK' : 'PADI_HIBRIDA_BERDASARKAN_PENDAPATAN',
+        jenisAnalisis: 'Pertanian Padi Hibrida'
+      };
+    }
+  }
+
   return {
     expense: {
       ...expense,
@@ -238,6 +377,7 @@ export function calculateTotals(
     },
     worker: calculatedWorker,
     keuntunganKotor,
+    analysis,
   };
 }
 

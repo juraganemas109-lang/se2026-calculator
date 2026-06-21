@@ -275,6 +275,57 @@ export function exportToPDF(record: BusinessRecord) {
     currentY += 22;
   }
 
+  // 6. Modul Analisis Otomatis Tembakau (If available)
+  if (record.analysis) {
+    checkPageBreak(40);
+    currentY += 6;
+    currentY = drawSectionHeader('V. ANALISIS OTOMATIS: ' + (record.analysis.jenisAnalisis?.toUpperCase() || 'INDUSTRI PRAJANGAN TEMBAKAU'), currentY);
+    
+    doc.setFontSize(10);
+    
+    // Light green background
+    doc.setFillColor(235, 248, 240);
+    const boxHeight = record.analysis.jenisAnalisis === 'Pertanian Padi Hibrida' ? 38 : (record.analysis.jenisAnalisis === 'PERTANIAN_TEMBAKAU' || record.analysis.jenisAnalisis === 'Pertanian Tembakau' ? 34 : 34);
+    doc.rect(15, currentY, pageWidth - 30, boxHeight, 'F');
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 120, 50);
+    if (record.analysis.jenisAnalisis === 'PERTANIAN_TEMBAKAU' || record.analysis.jenisAnalisis === 'Pertanian Tembakau') {
+      doc.text(`Jumlah Pohon: ${formatRupiah(record.analysis.jumlahPohon || 0)} Pohon | Produksi: ${formatRupiah(record.analysis.produksiKg || 0)} Kg`, leftColX + 2, currentY + 7);
+      doc.text(`Harga Acuan: Rp ${formatRupiah(record.analysis.hargaAcuanKg || record.analysis.hargaPerKg || 0)}/kg`, leftColX + 2, currentY + 14);
+      doc.text(`Nilai Jual Sawah: Rp ${formatRupiah(record.analysis.nilaiJualSawah || record.analysis.estimasiNilaiJualSawah || 0)}`, leftColX + 2, currentY + 21);
+      doc.text(`Luas Lahan: ${formatRupiah(record.analysis.luasM2 || 0)} m2 (${(record.analysis.luasHa || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Ha)`, leftColX + 2, currentY + 28);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(80, 80, 80);
+      doc.text(`Jenis: ${record.analysis.jenisTembakau || '-'} | Mode Tanam: ${record.analysis.modeTanam || 'Normal'}`, leftColX + 2, currentY + 34);
+    } else if (record.analysis.jenisAnalisis === 'Pertanian Padi Hibrida') {
+      doc.setTextColor(180, 80, 0); // Amber/Orange color for Padi Hibrida
+      doc.text(`Estimasi Pohon: ${formatRupiah(record.analysis.estimasiPohon || 0)} Pohon | Produksi: ${formatRupiah(record.analysis.produksiKg || 0)} Kg`, leftColX + 2, currentY + 7);
+      doc.text(`Jumlah Sak: ${formatRupiah(record.analysis.jumlahSak || 0)} Sak`, leftColX + 2, currentY + 14);
+      doc.text(`Estimasi Luas Lahan: ${formatRupiah(record.analysis.estimasiLuasM2 || 0)} m2 (${(record.analysis.estimasiLuasHa || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Ha)`, leftColX + 2, currentY + 21);
+      doc.text(`Estimasi Nilai Jual: Rp ${formatRupiah(record.analysis.estimasiNilaiJual || 0)}`, leftColX + 2, currentY + 28);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(80, 80, 80);
+      doc.text(`Jenis Penjualan: ${record.analysis.jenisPenjualan || '-'} | Acuan: Rp${formatRupiah(record.analysis.hargaAcuanKg || 0)}/kg`, leftColX + 2, currentY + 35);
+    } else {
+      doc.text(`Jumlah Pohon: ${formatRupiah(record.analysis.jumlahPohon || 0)} Pohon`, leftColX + 2, currentY + 7);
+      doc.text(`Produksi Rajangan: ${formatRupiah(record.analysis.produksiKg || 0)} Kg | Harga Acuan: Rp ${formatRupiah(record.analysis.hargaPerKg || 0)}/Kg`, leftColX + 2, currentY + 14);
+      doc.text(`Pendapatan Rajangan: Rp ${formatRupiah(record.analysis.pendapatanRajangan || 0)}`, leftColX + 2, currentY + 21);
+      doc.text(`Luas: ${formatRupiah(record.analysis.luasM2 || 0)} m2 (${(record.analysis.luasHa || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Ha)`, leftColX + 2, currentY + 28);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(80, 80, 80);
+      doc.text(`Jenis: ${record.analysis.jenisTembakau || '-'} | Mode Tanam: ${record.analysis.modeTanam || '-'} | Metode: ${record.analysis.metodePerhitungan || '-'}`, leftColX + 2, currentY + 34);
+    }
+    
+    currentY += 32;
+  }
+
   // 6. Footer Signatures (Positioned safely at bottom of page)
   checkPageBreak(40); // ensure we have 40mm space for footer
   
