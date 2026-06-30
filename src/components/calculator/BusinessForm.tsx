@@ -93,6 +93,10 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
 
   const [jumlahPohonPertanian, setJumlahPohonPertanian] = useState<string>('');
 
+  // Estimasi Pendapatan States
+  const [estimasiMode, setEstimasiMode] = useState<'Bulanan' | 'Tahunan'>('Bulanan');
+  const [pendapatanInput, setPendapatanInput] = useState<number>(0);
+
   // Validation States
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
@@ -270,6 +274,27 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
       });
     }
   }, [jumlahPohonPertanian, jenisTembakau, identity.kategoriUsaha, identity.kbli]);
+
+  // Auto-fill Nilai Produksi for Estimasi Pendapatan Bulanan/Tahunan
+  useEffect(() => {
+    if (pendapatanInput > 0) {
+      const isAutoKbli = 
+        (identity.kategoriUsaha === 'A' && identity.kbli === '01121' && !modeCadanganPadi) || 
+        (identity.kbli === '12004' || (identity.kategoriUsaha === 'C' && /Prajangan Tembakau|Rajangan Tembakau|Industri Tembakau/i.test(identity.namaUsaha))) || 
+        (identity.kategoriUsaha === 'A' && identity.kbli === '01150');
+      
+      // Only apply if it's not overridden by specific KBLI auto-calc
+      if (!isAutoKbli) {
+        const annualValue = estimasiMode === 'Bulanan' ? pendapatanInput * 12 : pendapatanInput;
+        setRevenue(prev => {
+          if (prev.nilaiProduksiPenjualan !== annualValue) {
+            return { ...prev, nilaiProduksiPenjualan: annualValue };
+          }
+          return prev;
+        });
+      }
+    }
+  }, [pendapatanInput, estimasiMode, identity.kategoriUsaha, identity.kbli, identity.namaUsaha, modeCadanganPadi]);
 
   // Validate on changes
   useEffect(() => {
@@ -913,6 +938,86 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wide border-l-4 border-bps-green pl-2 mb-2">
               Modul Produksi / Pendapatan (SE2026 Rincian 27)
             </h3>
+
+            {/* Alat Bantu Estimasi Pendapatan Bulanan/Tahunan */}
+            <div className="bg-indigo-50/50 dark:bg-indigo-900/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/50 mb-4 animate-fadeIn">
+              <h4 className="text-xs font-bold text-indigo-800 dark:text-indigo-300 mb-3 flex items-center gap-1.5 uppercase tracking-wide">
+                <span className="text-base">📊</span> Estimasi Pendapatan Rata-rata
+              </h4>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
+                  <label className="flex items-center gap-1.5 text-xs md:text-sm text-slate-700 dark:text-slate-300 font-medium cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="estimasiMode" 
+                      value="Bulanan" 
+                      checked={estimasiMode === 'Bulanan'} 
+                      onChange={() => {
+                        setEstimasiMode('Bulanan');
+                        setPendapatanInput(0);
+                      }}
+                      className="text-bps-blue focus:ring-bps-blue w-3.5 h-3.5"
+                    />
+                    Saya mengetahui pendapatan bulanan
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs md:text-sm text-slate-700 dark:text-slate-300 font-medium cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="estimasiMode" 
+                      value="Tahunan" 
+                      checked={estimasiMode === 'Tahunan'} 
+                      onChange={() => {
+                        setEstimasiMode('Tahunan');
+                        setPendapatanInput(0);
+                      }}
+                      className="text-bps-blue focus:ring-bps-blue w-3.5 h-3.5"
+                    />
+                    Saya mengetahui pendapatan tahunan
+                  </label>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <InputRupiah
+                    id="pendapatanInput"
+                    label={estimasiMode === 'Bulanan' ? "Rata-rata Pendapatan per Bulan" : "Rata-rata Pendapatan per Tahun"}
+                    value={pendapatanInput}
+                    onChange={val => setPendapatanInput(val)}
+                    info={estimasiMode === 'Bulanan' ? "Otomatis dihitung × 12 ke Tahunan" : "Otomatis dibagi 12 ke Bulanan"}
+                  />
+                  
+                  {pendapatanInput > 0 && (
+                    <div className="bg-white/80 dark:bg-slate-800/80 p-3 rounded-lg border border-indigo-100/50 dark:border-indigo-800/30 flex flex-col justify-center shadow-sm">
+                      <div className="flex flex-col gap-1.5 text-[10px] md:text-xs">
+                        <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                          <span>Rata-rata per Hari:</span>
+                          <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                            Rp {formatRupiah(Math.round((estimasiMode === 'Bulanan' ? pendapatanInput : pendapatanInput / 12) / 30))}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                          <span>Rata-rata per Minggu:</span>
+                          <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                            Rp {formatRupiah(Math.round((estimasiMode === 'Bulanan' ? pendapatanInput : pendapatanInput / 12) / 4))}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-slate-700/50 pt-1.5 mt-0.5">
+                          <span>Pendapatan Bulanan:</span>
+                          <span className="font-mono font-bold text-indigo-700 dark:text-indigo-400">
+                            Rp {formatRupiah(estimasiMode === 'Bulanan' ? pendapatanInput : Math.round(pendapatanInput / 12))}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                          <span>Pendapatan Tahunan:</span>
+                          <span className="font-mono font-bold text-bps-green dark:text-bps-green-light">
+                            Rp {formatRupiah(estimasiMode === 'Bulanan' ? pendapatanInput * 12 : pendapatanInput)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InputRupiah

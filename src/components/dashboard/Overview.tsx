@@ -183,6 +183,47 @@ export const Overview: React.FC<OverviewProps> = ({ records, selectedId, onSelec
         </div>
       </div>
 
+      {/* Estimasi Rata-rata Pendapatan Card */}
+      <div className="bg-indigo-50/50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 rounded-2xl p-5 shadow-sm">
+        <h4 className="text-sm font-bold text-indigo-800 dark:text-indigo-300 mb-4 flex items-center gap-2 uppercase tracking-wide">
+          <span className="text-lg">📊</span> Estimasi Rata-rata Pendapatan
+        </h4>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-indigo-50 dark:border-indigo-800/30 shadow-sm">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">
+              Rata-rata Harian
+            </span>
+            <span className="text-sm md:text-base font-mono font-bold text-slate-800 dark:text-slate-100">
+              Rp {formatRupiah(Math.round((currentData.totalProduksi / 12) / 30))}
+            </span>
+          </div>
+          <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-indigo-50 dark:border-indigo-800/30 shadow-sm">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">
+              Rata-rata Mingguan
+            </span>
+            <span className="text-sm md:text-base font-mono font-bold text-slate-800 dark:text-slate-100">
+              Rp {formatRupiah(Math.round((currentData.totalProduksi / 12) / 4))}
+            </span>
+          </div>
+          <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-indigo-50 dark:border-indigo-800/30 shadow-sm">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">
+              Pendapatan Bulanan
+            </span>
+            <span className="text-sm md:text-base font-mono font-bold text-indigo-700 dark:text-indigo-400">
+              Rp {formatRupiah(Math.round(currentData.totalProduksi / 12))}
+            </span>
+          </div>
+          <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-indigo-50 dark:border-indigo-800/30 shadow-sm">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">
+              Pendapatan Tahunan
+            </span>
+            <span className="text-sm md:text-base font-mono font-bold text-bps-green dark:text-bps-green-light">
+              Rp {formatRupiah(currentData.totalProduksi)}
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Dimensions Metrics Card */}
       <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-3">
