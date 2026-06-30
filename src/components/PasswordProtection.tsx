@@ -1,56 +1,60 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Lock, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Lock, Mail, Key, AlertCircle, LogIn, UserPlus } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
-export default function PasswordProtection({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [passwordInput, setPasswordInput] = useState('');
-  const [error, setError] = useState(false);
+export default function AuthGuard({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  
+  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    // Cek di localStorage apakah sudah pernah login
-    const authStatus = localStorage.getItem('se2026_auth');
-    if (authStatus === 'true') {
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-    }
-  }, []);
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const correctPassword = process.env.NEXT_PUBLIC_APP_PASSWORD;
-    
-    // Jika environment variable tidak disetel, izinkan masuk (mode fallback/development)
-    if (!correctPassword) {
-      console.warn("NEXT_PUBLIC_APP_PASSWORD is not set. Allowing access.");
-      setIsAuthenticated(true);
-      localStorage.setItem('se2026_auth', 'true');
-      return;
-    }
+    setError('');
+    setIsSubmitting(true);
 
-    if (passwordInput === correctPassword) {
-      setIsAuthenticated(true);
-      localStorage.setItem('se2026_auth', 'true');
-      setError(false);
-    } else {
-      setError(true);
-      setPasswordInput('');
+    try {
+      if (isLoginMode) {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        setError('Email atau password salah.');
+      } else if (err.code === 'auth/email-already-in-use') {
+        setError('Email ini sudah terdaftar. Silakan login.');
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password terlalu lemah (minimal 6 karakter).');
+      } else {
+        setError(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Jangan tampilkan apa-apa sebelum status dicek untuk menghindari flicker
-  if (isAuthenticated === null) {
-    return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
+        <div className="w-12 h-12 border-4 border-bps-blue border-t-transparent rounded-full animate-spin"></div>
+        <p className="mt-4 text-slate-500 font-medium">Memeriksa sesi...</p>
+      </div>
+    );
   }
 
-  // Jika sudah terautentikasi, tampilkan aplikasi utama
-  if (isAuthenticated) {
+  if (user) {
     return <>{children}</>;
   }
 
-  // Jika belum, tampilkan halaman gembok
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
       <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 p-8 transform transition-all">
@@ -61,45 +65,88 @@ export default function PasswordProtection({ children }: { children: React.React
         </div>
         
         <h1 className="text-2xl font-bold text-center text-slate-800 dark:text-slate-100 mb-2">
-          Halaman Terkunci
+          {isLoginMode ? 'Masuk ke Akun' : 'Daftar Akun Baru'}
         </h1>
         <p className="text-center text-slate-500 dark:text-slate-400 text-sm mb-8">
-          Aplikasi ini bersifat rahasia. Masukkan password yang telah diberikan untuk mengakses kalkulator SE2026.
+          {isLoginMode 
+            ? 'Masuk menggunakan email untuk mensinkronisasi data kuesioner Anda.' 
+            : 'Buat akun baru untuk menyimpan data kuesioner Anda di Cloud.'}
         </p>
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <input
-              type="password"
-              placeholder="Masukkan password..."
-              value={passwordInput}
-              onChange={(e) => setPasswordInput(e.target.value)}
-              className={`w-full px-4 py-3 rounded-xl border ${
-                error 
-                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20 bg-red-50 dark:bg-red-900/10 dark:border-red-800' 
-                  : 'border-slate-200 dark:border-slate-700 focus:border-bps-blue focus:ring-bps-blue/20 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100'
-              } outline-none focus:ring-4 transition-all`}
-              autoFocus
-            />
-            {error && (
-              <p className="flex items-center gap-1.5 text-xs text-red-500 mt-2 font-medium">
-                <AlertCircle className="w-3.5 h-3.5" />
-                Password salah. Silakan coba lagi.
-              </p>
-            )}
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Email</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Mail className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                type="email"
+                placeholder="email@contoh.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pl-10 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:border-bps-blue focus:ring-bps-blue/20 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none focus:ring-4 transition-all"
+                required
+              />
+            </div>
           </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Password</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Key className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                type="password"
+                placeholder="Minimal 6 karakter"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-10 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:border-bps-blue focus:ring-bps-blue/20 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none focus:ring-4 transition-all"
+                required
+                minLength={6}
+              />
+            </div>
+          </div>
+          
+          {error && (
+            <p className="flex items-start gap-1.5 text-xs text-red-500 mt-2 font-medium bg-red-50 dark:bg-red-900/10 p-3 rounded-lg border border-red-100 dark:border-red-800">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </p>
+          )}
           
           <button
             type="submit"
-            className="w-full bg-bps-blue hover:bg-bps-blue-dark text-white font-bold py-3 rounded-xl shadow-lg shadow-bps-blue/20 transition-all hover:scale-[1.02] active:scale-95"
+            disabled={isSubmitting}
+            className="w-full flex items-center justify-center gap-2 bg-bps-blue hover:bg-bps-blue-dark text-white font-bold py-3 rounded-xl shadow-lg shadow-bps-blue/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-70 disabled:hover:scale-100 mt-6"
           >
-            Masuk ke Aplikasi
+            {isSubmitting ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            ) : isLoginMode ? (
+              <><LogIn className="w-5 h-5" /> Masuk</>
+            ) : (
+              <><UserPlus className="w-5 h-5" /> Daftar Sekarang</>
+            )}
           </button>
         </form>
+
+        <div className="mt-6 text-center">
+          <button 
+            type="button"
+            onClick={() => {
+              setIsLoginMode(!isLoginMode);
+              setError('');
+            }}
+            className="text-sm text-bps-blue font-semibold hover:underline"
+          >
+            {isLoginMode ? 'Belum punya akun? Daftar di sini' : 'Sudah punya akun? Masuk di sini'}
+          </button>
+        </div>
       </div>
       
       <div className="mt-8 text-xs text-slate-400 dark:text-slate-500 font-medium">
-        &copy; 2026 Tim SE2026
+        &copy; 2026 Tim SE2026 - Data tersimpan aman di Cloud
       </div>
     </div>
   );

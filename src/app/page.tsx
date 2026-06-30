@@ -8,7 +8,10 @@ import { Overview } from '@/components/dashboard/Overview';
 import { AnalyticsCharts } from '@/components/dashboard/AnalyticsCharts';
 import { OfflineManager } from '@/components/OfflineManager';
 import { PrintReport } from '@/components/calculator/PrintReport';
-import { Calculator, LayoutDashboard, Database, Briefcase, HelpCircle } from 'lucide-react';
+import { Calculator, LayoutDashboard, Database, Briefcase, HelpCircle, LogOut } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { firestoreService } from '@/lib/firestore';
+import { auth } from '@/lib/firebase';
 
 export default function Home() {
   const [records, setRecords] = useState<BusinessRecord[]>([]);
@@ -18,25 +21,39 @@ export default function Home() {
   const [printRecord, setPrintRecord] = useState<BusinessRecord | null>(null);
   const [isClient, setIsClient] = useState<boolean>(false);
 
-  // Load records from local storage on client mount
+  const { user } = useAuth();
+
+  // Load records from cloud on client mount
   useEffect(() => {
     setIsClient(true);
-    const stored = localStorage.getItem('se2026_records');
-    if (stored) {
+    if (user?.uid) {
+      firestoreService.getUserRecords(user.uid)
+        .then(data => {
+          console.log("DATA_LOADED_FROM_CLOUD", data);
+          setRecords(data);
+        })
+        .catch(err => {
+          console.error('Failed to fetch cloud records', err);
+        });
+    }
+  }, [user]);
+
+  // Save single record or delete to cloud
+  const syncToCloud = async (newRecords: BusinessRecord[], modifiedRecord?: BusinessRecord, deleteId?: string) => {
+    setRecords(newRecords);
+    if (user?.uid) {
       try {
-        const parsed = JSON.parse(stored);
-        console.log("DATA_LOADED_FROM_DB", parsed);
-        setRecords(parsed);
+        if (modifiedRecord) {
+          await firestoreService.saveRecord(user.uid, modifiedRecord);
+        }
+        if (deleteId) {
+          await firestoreService.deleteRecord(user.uid, deleteId);
+        }
       } catch (e) {
-        console.error('Failed to parse stored records', e);
+        console.error("Failed to sync to cloud", e);
+        alert("Gagal menyinkronisasi ke Cloud. Silakan periksa koneksi internet Anda.");
       }
     }
-  }, []);
-
-  // Save records to local storage on changes
-  const saveToLocalStorage = (newRecords: BusinessRecord[]) => {
-    setRecords(newRecords);
-    localStorage.setItem('se2026_records', JSON.stringify(newRecords));
   };
 
   const handleSaveRecord = (record: BusinessRecord) => {
@@ -44,29 +61,23 @@ export default function Home() {
     let updatedRecords: BusinessRecord[] = [];
 
     if (existsIdx > -1) {
-      // Update existing record
       updatedRecords = [...records];
       updatedRecords[existsIdx] = record;
-      alert(`Berhasil memperbarui data usaha "${record.identity.namaUsaha}"!`);
+      alert(`Berhasil memperbarui data usaha "${record.identity.namaUsaha}" ke Cloud!`);
     } else {
-      // Insert new record
       updatedRecords = [record, ...records];
-      alert(`Berhasil menyimpan data usaha "${record.identity.namaUsaha}" secara offline!`);
+      alert(`Berhasil menyimpan data usaha "${record.identity.namaUsaha}" ke Cloud!`);
     }
 
-    saveToLocalStorage(updatedRecords);
-    console.log("DATA_SAVED", record); // Using 'record' as the savedRecord to match what user typed? No, 'updatedRecords' has all. But user asked for savedRecord, let's log the single record.
-    console.log("DATA_SAVED_ALL", updatedRecords);
+    syncToCloud(updatedRecords, record);
     setEditRecord(null);
     setSelectedDashboardId(record.id);
-    
-    // Switch to database list view to inspect results
     setActiveTab('database');
   };
 
   const handleDeleteRecord = (id: string) => {
     const updated = records.filter(r => r.id !== id);
-    saveToLocalStorage(updated);
+    syncToCloud(updated, undefined, id);
     if (selectedDashboardId === id) {
       setSelectedDashboardId('all');
     }
@@ -75,18 +86,30 @@ export default function Home() {
     }
   };
 
-  const handleImportRecords = (newRecords: BusinessRecord[]) => {
-    // Avoid exact duplicate IDs by merging
+  const handleImportRecords = async (newRecords: BusinessRecord[]) => {
     const merged = [...records];
+    const recordsToSync: BusinessRecord[] = [];
+    
     newRecords.forEach(newRec => {
       const idx = merged.findIndex(r => r.id === newRec.id);
       if (idx > -1) {
-        merged[idx] = newRec; // overwrite
+        merged[idx] = newRec;
       } else {
-        merged.unshift(newRec); // prepend
+        merged.unshift(newRec);
       }
+      recordsToSync.push(newRec);
     });
-    saveToLocalStorage(merged);
+    
+    setRecords(merged);
+    
+    if (user?.uid) {
+      alert("Menyinkronisasi data impor ke Cloud...");
+      // For simplicity, we save one by one. In production, consider batching.
+      for (const rec of recordsToSync) {
+        await firestoreService.saveRecord(user.uid, rec);
+      }
+      alert("Selesai menyinkronisasi data ke Cloud!");
+    }
   };
 
   const handleEditTrigger = (record: BusinessRecord) => {
@@ -149,6 +172,13 @@ export default function Home() {
           </div>
           
           <div className="flex items-center gap-2">
+            <button 
+              onClick={() => auth.signOut()}
+              className="px-3 py-1.5 text-xs font-bold bg-red-50 hover:bg-red-100 text-red-600 rounded-lg flex items-center gap-1.5 transition-colors"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Keluar
+            </button>
             <ThemeToggle />
           </div>
         </header>

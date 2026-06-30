@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import PwaRegistrar from '@/components/PwaRegistrar';
 import PasswordProtection from '@/components/PasswordProtection';
+import { AuthProvider } from '@/context/AuthContext';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -30,10 +31,12 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className="antialiased min-h-screen bg-slate-50 dark:bg-slate-950">
-        <PasswordProtection>
-          {children}
-          <PwaRegistrar />
-        </PasswordProtection>
+        <AuthProvider>
+          <PasswordProtection>
+            {children}
+            <PwaRegistrar />
+          </PasswordProtection>
+        </AuthProvider>
       </body>
     </html>
   );
