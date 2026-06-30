@@ -1,41 +1,39 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Lock, Mail, Key, AlertCircle, LogIn, UserPlus } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { Lock, Key, AlertCircle, LogIn } from 'lucide-react';
 
-export default function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-  
-  const [isLoginMode, setIsLoginMode] = useState(true);
-  const [email, setEmail] = useState('');
+export default function PasswordProtection({ children }: { children: React.ReactNode }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Check local storage on mount
+    const authStatus = localStorage.getItem('is_authenticated');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+    }
+    setLoading(false);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
 
-    try {
-      if (isLoginMode) {
-        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-        if (signInError) throw signInError;
-        router.refresh(); // Force Next.js to fetch fresh data after login
+    // Hardcoded password "bps2026"
+    setTimeout(() => {
+      if (password === 'bps2026') {
+        localStorage.setItem('is_authenticated', 'true');
+        setIsAuthenticated(true);
       } else {
-        const { error: signUpError } = await supabase.auth.signUp({ email, password });
-        if (signUpError) throw signUpError;
+        setError('Kata sandi salah. Silakan coba lagi.');
       }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
-    } finally {
       setIsSubmitting(false);
-    }
+    }, 500); // give a tiny delay to show the spinner for good UX
   };
 
   if (loading) {
@@ -47,7 +45,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (user) {
+  if (isAuthenticated) {
     return <>{children}</>;
   }
 
@@ -61,48 +59,29 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         </div>
         
         <h1 className="text-2xl font-bold text-center text-slate-800 dark:text-slate-100 mb-2">
-          {isLoginMode ? 'Masuk ke Akun' : 'Daftar Akun Baru'}
+          Akses Aplikasi
         </h1>
         <p className="text-center text-slate-500 dark:text-slate-400 text-sm mb-8">
-          {isLoginMode 
-            ? 'Masuk menggunakan email untuk mensinkronisasi data kuesioner Anda.' 
-            : 'Buat akun baru untuk menyimpan data kuesioner Anda di Cloud.'}
+          Silakan masukkan kata sandi untuk menggunakan SE2026 Smart Calculator. 
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Email</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-slate-400" />
-              </div>
-              <input
-                type="email"
-                placeholder="email@contoh.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:border-bps-blue focus:ring-bps-blue/20 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none focus:ring-4 transition-all"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Password</label>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Kata Sandi</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Key className="h-5 w-5 text-slate-400" />
               </div>
               <input
                 type="password"
-                placeholder="Minimal 6 karakter"
+                placeholder="Masukkan kata sandi"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-10 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:border-bps-blue focus:ring-bps-blue/20 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none focus:ring-4 transition-all"
                 required
-                minLength={6}
               />
             </div>
+            <p className="text-[10px] text-slate-400 mt-1.5 ml-1">Sandi default: <strong>bps2026</strong></p>
           </div>
           
           {error && (
@@ -119,30 +98,15 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
           >
             {isSubmitting ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-            ) : isLoginMode ? (
-              <><LogIn className="w-5 h-5" /> Masuk</>
             ) : (
-              <><UserPlus className="w-5 h-5" /> Daftar Sekarang</>
+              <><LogIn className="w-5 h-5" /> Masuk ke Kalkulator</>
             )}
           </button>
         </form>
-
-        <div className="mt-6 text-center">
-          <button 
-            type="button"
-            onClick={() => {
-              setIsLoginMode(!isLoginMode);
-              setError('');
-            }}
-            className="text-sm text-bps-blue font-semibold hover:underline"
-          >
-            {isLoginMode ? 'Belum punya akun? Daftar di sini' : 'Sudah punya akun? Masuk di sini'}
-          </button>
-        </div>
       </div>
       
-      <div className="mt-8 text-xs text-slate-400 dark:text-slate-500 font-medium">
-        &copy; 2026 Tim SE2026 - Data tersimpan aman di Cloud
+      <div className="mt-8 text-xs text-slate-400 dark:text-slate-500 font-medium text-center">
+        &copy; 2026 Tim SE2026 - Mode Akses Cepat
       </div>
     </div>
   );
