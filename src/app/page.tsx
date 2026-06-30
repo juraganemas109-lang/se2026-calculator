@@ -4,7 +4,7 @@ import { BusinessForm } from '@/components/calculator/BusinessForm';
 import { Overview } from '@/components/dashboard/Overview';
 import { BusinessRecord } from '@/utils/calculatorHelper';
 import { PrintReport } from '@/components/calculator/PrintReport';
-import { Calculator, LayoutDashboard, Database, Briefcase, HelpCircle, LogOut } from 'lucide-react';
+import { Calculator, LayoutDashboard, Database, Briefcase, HelpCircle, LogOut, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabaseService } from '@/lib/supabaseService';
 import { supabase } from '@/lib/supabase';
@@ -17,6 +17,24 @@ export default function Home() {
   
   // Edit State
   const [editRecord, setEditRecord] = useState<BusinessRecord | null>(null);
+
+  const handleResetCache = async () => {
+    if (window.confirm('Yakin ingin mereset cache aplikasi? Ini akan memperbaiki masalah jika halaman sering gagal dimuat.')) {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let reg of registrations) {
+          await reg.unregister();
+        }
+      }
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        for (let key of keys) {
+          await caches.delete(key);
+        }
+      }
+      window.location.reload();
+    }
+  };
 
   useEffect(() => {
     setIsClient(true);
@@ -102,6 +120,10 @@ export default function Home() {
             </div>
             
             <div className="flex items-center gap-2">
+              <button onClick={handleResetCache} className="px-3 py-1.5 text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-lg flex items-center gap-1.5 transition-colors" title="Perbaiki error gagal muat">
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Reset Cache</span>
+              </button>
               <button onClick={() => supabase.auth.signOut()} className="px-3 py-1.5 text-xs font-bold bg-red-50 hover:bg-red-100 text-red-600 rounded-lg flex items-center gap-1.5 transition-colors">
                 <LogOut className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Keluar</span>
