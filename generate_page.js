@@ -1,7 +1,9 @@
-'use client';
-import React, { useState, useEffect } from 'react';
+const fs = require('fs');
+
+const page_content = `import React, { useState, useEffect } from 'react';
 import { BusinessForm } from '@/components/calculator/BusinessForm';
 import { Overview } from '@/components/dashboard/Overview';
+import { AnalyticsCharts } from '@/components/dashboard/AnalyticsCharts';
 import { BusinessRecord } from '@/utils/calculatorHelper';
 import { PrintReport } from '@/components/calculator/PrintReport';
 import { Calculator, LayoutDashboard, Database, Briefcase, HelpCircle, LogOut } from 'lucide-react';
@@ -135,14 +137,14 @@ export default function Home() {
           <div className="inline-flex bg-white rounded-2xl p-1.5 shadow-sm border border-gray-200">
             <button
               onClick={() => { setActiveTab('calculator'); setEditRecord(null); }}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${activeTab === 'calculator' ? 'bg-blue-50 text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
+              className={\`flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 \${activeTab === 'calculator' ? 'bg-blue-50 text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}\`}
             >
               <Calculator className="w-4 h-4" />
               <span className="hidden sm:inline">Input Data Baru</span>
             </button>
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${activeTab === 'dashboard' ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
+              className={\`flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 \${activeTab === 'dashboard' ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}\`}
             >
               <Database className="w-4 h-4" />
               <span className="hidden sm:inline">Database ({records.length})</span>
@@ -164,6 +166,13 @@ export default function Home() {
           )}
         </div>
       </main>
+
     </div>
   );
 }
+`;
+fs.writeFileSync('src/app/page.tsx', page_content, 'utf8');
+console.log('Done page.tsx');
+`;
+fs.writeFileSync('generate_page.js', page_content, 'utf8');
+console.log('Done generating script');

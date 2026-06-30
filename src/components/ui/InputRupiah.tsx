@@ -1,11 +1,13 @@
+'use client';
 import React, { useState, useEffect } from 'react';
 import { formatRupiah, parseRupiah } from '@/utils/calculatorHelper';
 
 interface InputRupiahProps {
-  id: string;
+  id?: string;
   label: string;
   value: number;
   onChange: (val: number) => void;
+  isNumeric?: boolean;
   disabled?: boolean;
   placeholder?: string;
   required?: boolean;
@@ -16,18 +18,20 @@ interface InputRupiahProps {
 }
 
 export const InputRupiah: React.FC<InputRupiahProps> = ({
-  id,
+  id = Math.random().toString(36).substr(2, 9),
   label,
   value,
   onChange,
+  isNumeric = false,
   disabled = false,
   placeholder = '0',
   required = false,
   error,
   info,
-  prefix = 'Rp',
+  prefix,
   suffix = '',
 }) => {
+  const actualPrefix = prefix !== undefined ? prefix : (isNumeric ? '' : 'Rp');
   const [displayValue, setDisplayValue] = useState<string>('0');
 
   useEffect(() => {
@@ -80,9 +84,9 @@ export const InputRupiah: React.FC<InputRupiahProps> = ({
       </label>
       
       <div className="relative flex items-center rounded-lg shadow-sm">
-        {prefix && (
+        {actualPrefix && (
           <span className="absolute left-3 text-sm font-semibold text-slate-400 select-none">
-            {prefix}
+            {actualPrefix}
           </span>
         )}
         <input
@@ -95,7 +99,7 @@ export const InputRupiah: React.FC<InputRupiahProps> = ({
           onBlur={handleBlur}
           disabled={disabled}
           placeholder={placeholder}
-          className={`w-full ${prefix ? 'pl-9' : 'pl-3'} ${suffix ? 'pr-9' : 'pr-3'} py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border focus:outline-none focus:ring-2 transition-all font-mono font-medium ${
+          className={`w-full ${actualPrefix ? 'pl-9' : 'pl-3'} ${suffix ? 'pr-9' : 'pr-3'} py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border focus:outline-none focus:ring-2 transition-all font-mono font-medium ${
             error
               ? 'border-red-500 focus:ring-red-200 dark:focus:ring-red-950 focus:border-red-500'
               : 'border-slate-200 dark:border-slate-700 focus:ring-bps-blue-light/20 focus:border-bps-blue-light'

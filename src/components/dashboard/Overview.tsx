@@ -1,266 +1,202 @@
-import React from 'react';
+'use client';
+import React, { useState } from 'react';
 import { BusinessRecord, formatRupiah } from '@/utils/calculatorHelper';
-import { TrendingUp, TrendingDown, DollarSign, Briefcase, Maximize, MapPin } from 'lucide-react';
+import { PrintReport } from '../calculator/PrintReport';
+import { Search, Edit2, Trash2, FileDown, PlusCircle, LayoutDashboard, Briefcase, ChevronRight, ChevronDown } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 interface OverviewProps {
   records: BusinessRecord[];
-  selectedId: string | 'all';
-  onSelectId: (id: string | 'all') => void;
+  onDelete: (id: string) => void;
+  onEdit: (record: BusinessRecord) => void;
 }
 
-export const Overview: React.FC<OverviewProps> = ({ records, selectedId, onSelectId }) => {
-  // Compute aggregate totals
-  const getAggregatedData = () => {
-    let totalProduksi = 0;
-    let totalPengeluaran = 0;
-    let totalAset = 0;
-    let totalLuasTanah = 0;
-    let totalLuasBangunan = 0;
+export const Overview: React.FC<OverviewProps> = ({ records, onDelete, onEdit }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [printingRecord, setPrintingRecord] = useState<BusinessRecord | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-    records.forEach(r => {
-      totalProduksi += r.revenue.totalProduksi;
-      totalPengeluaran += r.expense.totalPengeluaran;
-      totalAset += r.asset.totalAset;
-      totalLuasTanah += r.dimension.luasTanah;
-      totalLuasBangunan += r.dimension.luasBangunan;
+  const filteredRecords = records.filter(record => 
+    record.identity.namaPemilik.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    record.identity.alamat.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const exportToExcel = () => {
+    const dataToExport = records.map(r => {
+      const active = r.businesses.filter(b => b.isActive);
+      const totalPendapatan = active.reduce((sum, b) => sum + b.revenue.totalProduksi, 0);
+      const totalPengeluaran = active.reduce((sum, b) => sum + b.expense.totalPengeluaran, 0);
+      const totalLaba = active.reduce((sum, b) => sum + b.keuntunganKotor, 0);
+      return {
+        'Tgl Input': new Date(r.createdAt).toLocaleDateString('id-ID'),
+        'Nama Responden': r.identity.namaPemilik,
+        'No HP': r.identity.nomorHp,
+        'Alamat': r.identity.alamat,
+        'Jumlah Usaha Aktif': active.length,
+        'Total Pendapatan (Rp)': totalPendapatan,
+        'Total Pengeluaran (Rp)': totalPengeluaran,
+        'Grand Total Laba Bersih (Rp)': totalLaba
+      };
     });
 
-    const profit = totalProduksi - totalPengeluaran;
-
-    return {
-      name: 'Gabungan Semua Usaha',
-      totalProduksi,
-      totalPengeluaran,
-      totalAset,
-      luasTanah: totalLuasTanah,
-      luasBangunan: totalLuasBangunan,
-      keuntunganKotor: profit,
-    };
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Responden');
+    XLSX.writeFile(workbook, 'Data_Responden_SE2026.xlsx');
   };
 
-  // Get currently displayed data
-  const currentData = React.useMemo(() => {
-    if (selectedId === 'all' || records.length === 0) {
-      return getAggregatedData();
-    }
-    const rec = records.find(r => r.id === selectedId);
-    if (!rec) return getAggregatedData();
-
-    return {
-      name: rec.identity.namaUsaha,
-      totalProduksi: rec.revenue.totalProduksi,
-      totalPengeluaran: rec.expense.totalPengeluaran,
-      totalAset: rec.asset.totalAset,
-      luasTanah: rec.dimension.luasTanah,
-      luasBangunan: rec.dimension.luasBangunan,
-      keuntunganKotor: rec.revenue.totalProduksi - rec.expense.totalPengeluaran,
-    };
-  }, [records, selectedId]);
+  if (printingRecord) {
+    return (
+      <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+        <div className="flex justify-between items-center mb-6 pb-6 border-b border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+             <FileDown className="w-6 h-6 text-blue-600" />
+             Preview Cetak PDF
+          </h2>
+          <button 
+            onClick={() => setPrintingRecord(null)}
+            className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-semibold transition-colors"
+          >
+            Tutup Preview
+          </button>
+        </div>
+        <PrintReport record={printingRecord} />
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      {/* Selector and Title Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
-        <div>
-          <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-            Dashboard Analisis SE2026
-          </h3>
-          <p className="text-sm md:text-base font-bold text-slate-800 dark:text-slate-100 mt-0.5">
-            Menampilkan data untuk: <span className="text-bps-blue dark:text-bps-blue-light">{currentData.name}</span>
-          </p>
+    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+      <div className="p-6 md:p-8 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-gradient-to-br from-gray-50 to-white">
+        <div className="flex items-center gap-3 w-full md:w-auto">
+           <div className="bg-indigo-100 p-2.5 rounded-xl">
+              <LayoutDashboard className="w-6 h-6 text-indigo-700" />
+           </div>
+           <div>
+             <h2 className="text-2xl font-bold text-gray-800">Database Responden</h2>
+             <p className="text-gray-500 text-sm mt-1">Total {records.length} responden tersimpan</p>
+           </div>
         </div>
         
-        {records.length > 0 && (
-          <div className="flex items-center gap-2">
-            <label htmlFor="select-business" className="text-xs font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap">
-              Pilih Usaha:
-            </label>
-            <select
-              id="select-business"
-              value={selectedId}
-              onChange={e => onSelectId(e.target.value as any)}
-              className="px-3 py-1.5 text-xs md:text-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-bps-blue-light/30 transition-all font-medium cursor-pointer"
-            >
-              <option value="all">Gabungan Semua Usaha ({records.length})</option>
-              {records.map(r => (
-                <option key={r.id} value={r.id}>
-                  {r.identity.namaUsaha} ({r.identity.kbli})
-                </option>
-              ))}
-            </select>
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-64">
+            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Cari nama pemilik..."
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-        )}
-      </div>
-
-      {/* Metrics Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        {/* Card 1: Total Pendapatan / Produksi */}
-        <div className="relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group">
-          <div className="absolute top-0 left-0 w-2 h-full bg-bps-green" />
-          <div className="flex justify-between items-start">
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                Total Produksi / Pendapatan
-              </span>
-              <span className="text-lg md:text-2xl font-mono font-bold text-slate-800 dark:text-slate-100 mt-2">
-                Rp {formatRupiah(currentData.totalProduksi)}
-              </span>
-            </div>
-            <div className="p-3 bg-bps-green/10 text-bps-green rounded-xl group-hover:scale-110 transition-transform">
-              <TrendingUp className="w-5 h-5 md:w-6 md:h-6" />
-            </div>
-          </div>
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium block mt-2">
-            SE2026 Rincian 27.c (27.a + 27.b)
-          </span>
-        </div>
-
-        {/* Card 2: Total Pengeluaran */}
-        <div className="relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group">
-          <div className="absolute top-0 left-0 w-2 h-full bg-red-500" />
-          <div className="flex justify-between items-start">
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                Total Pengeluaran Usaha
-              </span>
-              <span className="text-lg md:text-2xl font-mono font-bold text-slate-800 dark:text-slate-100 mt-2">
-                Rp {formatRupiah(currentData.totalPengeluaran)}
-              </span>
-            </div>
-            <div className="p-3 bg-red-500/10 text-red-500 rounded-xl group-hover:scale-110 transition-transform">
-              <TrendingDown className="w-5 h-5 md:w-6 md:h-6" />
-            </div>
-          </div>
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium block mt-2">
-            SE2026 Rincian 26.f (a+b+c+d+e)
-          </span>
-        </div>
-
-        {/* Card 3: Keuntungan Kotor */}
-        <div className="relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group">
-          <div className="absolute top-0 left-0 w-2 h-full bg-amber-500" />
-          <div className="flex justify-between items-start">
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                Keuntungan Kotor Terhitung
-              </span>
-              <span className={`text-lg md:text-2xl font-mono font-bold mt-2 ${
-                currentData.keuntunganKotor >= 0 ? 'text-bps-green' : 'text-red-500'
-              }`}>
-                Rp {formatRupiah(currentData.keuntunganKotor)}
-              </span>
-            </div>
-            <div className={`p-3 rounded-xl group-hover:scale-110 transition-transform ${
-              currentData.keuntunganKotor >= 0 ? 'bg-bps-green/10 text-bps-green' : 'bg-red-500/10 text-red-500'
-            }`}>
-              <DollarSign className="w-5 h-5 md:w-6 md:h-6" />
-            </div>
-          </div>
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium block mt-2">
-            Total Produksi dikurangi Pengeluaran
-          </span>
-        </div>
-
-        {/* Card 4: Total Aset */}
-        <div className="relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group">
-          <div className="absolute top-0 left-0 w-2 h-full bg-bps-blue" />
-          <div className="flex justify-between items-start">
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                Estimasi Total Aset Usaha
-              </span>
-              <span className="text-lg md:text-2xl font-mono font-bold text-slate-800 dark:text-slate-100 mt-2">
-                Rp {formatRupiah(currentData.totalAset)}
-              </span>
-            </div>
-            <div className="p-3 bg-bps-blue/10 text-bps-blue rounded-xl group-hover:scale-110 transition-transform">
-              <Briefcase className="w-5 h-5 md:w-6 md:h-6" />
-            </div>
-          </div>
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium block mt-2">
-            SE2026 Rincian 28 (Tanah + Bgn + Alat)
-          </span>
+          <button
+            onClick={exportToExcel}
+            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center gap-2 font-semibold transition-colors shadow-md shadow-indigo-200"
+          >
+            <FileDown className="w-5 h-5" />
+            <span className="hidden sm:inline">Export Excel</span>
+          </button>
         </div>
       </div>
 
-      {/* Estimasi Rata-rata Pendapatan Card */}
-      <div className="bg-indigo-50/50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 rounded-2xl p-5 shadow-sm">
-        <h4 className="text-sm font-bold text-indigo-800 dark:text-indigo-300 mb-4 flex items-center gap-2 uppercase tracking-wide">
-          <span className="text-lg">📊</span> Estimasi Rata-rata Pendapatan
-        </h4>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-indigo-50 dark:border-indigo-800/30 shadow-sm">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">
-              Rata-rata Harian
-            </span>
-            <span className="text-sm md:text-base font-mono font-bold text-slate-800 dark:text-slate-100">
-              Rp {formatRupiah(Math.round((currentData.totalProduksi / 12) / 30))}
-            </span>
-          </div>
-          <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-indigo-50 dark:border-indigo-800/30 shadow-sm">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">
-              Rata-rata Mingguan
-            </span>
-            <span className="text-sm md:text-base font-mono font-bold text-slate-800 dark:text-slate-100">
-              Rp {formatRupiah(Math.round((currentData.totalProduksi / 12) / 4))}
-            </span>
-          </div>
-          <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-indigo-50 dark:border-indigo-800/30 shadow-sm">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">
-              Pendapatan Bulanan
-            </span>
-            <span className="text-sm md:text-base font-mono font-bold text-indigo-700 dark:text-indigo-400">
-              Rp {formatRupiah(Math.round(currentData.totalProduksi / 12))}
-            </span>
-          </div>
-          <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-indigo-50 dark:border-indigo-800/30 shadow-sm">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">
-              Pendapatan Tahunan
-            </span>
-            <span className="text-sm md:text-base font-mono font-bold text-bps-green dark:text-bps-green-light">
-              Rp {formatRupiah(currentData.totalProduksi)}
-            </span>
-          </div>
-        </div>
-      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-gray-50/80 text-gray-600 text-sm border-b border-gray-200">
+              <th className="py-4 px-6 font-semibold">Tgl Input</th>
+              <th className="py-4 px-6 font-semibold">Nama Responden</th>
+              <th className="py-4 px-6 font-semibold">Usaha Aktif</th>
+              <th className="py-4 px-6 font-semibold text-right">Grand Total Laba</th>
+              <th className="py-4 px-6 font-semibold text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {filteredRecords.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="py-12 text-center text-gray-500 bg-gray-50/30">
+                  <Briefcase className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-lg font-medium text-gray-600">Belum ada data</p>
+                  <p className="text-sm">Mulai tambahkan kuesioner pada tab Input Data Baru.</p>
+                </td>
+              </tr>
+            ) : (
+              filteredRecords.map((record) => {
+                const active = record.businesses.filter(b => b.isActive);
+                const grandTotal = active.reduce((sum, b) => sum + b.keuntunganKotor, 0);
+                const isExpanded = expandedId === record.id;
 
-      {/* Dimensions Metrics Card */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 rounded-xl">
-            <Maximize className="w-6 h-6" />
-          </div>
-          <div>
-            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">
-              Dimensi Tempat Usaha terhitung
-            </h4>
-            <p className="text-xs text-slate-400 dark:text-slate-500">
-              Diambil dari perhitungan panjang dan lebar fisik tanah/bangunan usaha
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-8 items-center border-t md:border-t-0 pt-4 md:pt-0 border-slate-100 dark:border-slate-800">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-indigo-500" />
-              Luas Tanah
-            </span>
-            <span className="text-sm md:text-lg font-mono font-bold text-slate-800 dark:text-slate-100 mt-1">
-              {currentData.luasTanah.toFixed(1).replace('.0', '')} m²
-            </span>
-          </div>
-
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-pink-500" />
-              Luas Bangunan
-            </span>
-            <span className="text-sm md:text-lg font-mono font-bold text-slate-800 dark:text-slate-100 mt-1">
-              {currentData.luasBangunan.toFixed(1).replace('.0', '')} m²
-            </span>
-          </div>
-        </div>
+                return (
+                  <React.Fragment key={record.id}>
+                    <tr className="hover:bg-blue-50/50 transition-colors group">
+                      <td className="py-4 px-6 text-sm text-gray-600">
+                        {new Date(record.createdAt).toLocaleDateString('id-ID', {
+                          day: 'numeric', month: 'short', year: 'numeric'
+                        })}
+                      </td>
+                      <td className="py-4 px-6">
+                        <p className="font-bold text-gray-800">{record.identity.namaPemilik}</p>
+                        <p className="text-xs text-gray-500 mt-0.5 truncate max-w-[200px]">{record.identity.nomorHp} - {record.identity.alamat}</p>
+                      </td>
+                      <td className="py-4 px-6">
+                        <button onClick={() => setExpandedId(isExpanded ? null : record.id)} className="flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors">
+                          {active.length} Usaha
+                          {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                        </button>
+                      </td>
+                      <td className="py-4 px-6 text-right">
+                        <span className={`font-bold ${grandTotal >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                          Rp {formatRupiah(grandTotal)}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center justify-center gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => setPrintingRecord(record)} className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg tooltip-trigger" title="Cetak PDF">
+                            <FileDown className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => onEdit(record)} className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg tooltip-trigger" title="Edit">
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => onDelete(record.id)} className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg tooltip-trigger" title="Hapus">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr className="bg-gray-50/80 border-t-0">
+                        <td colSpan={5} className="px-6 py-4">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {active.map(b => (
+                              <div key={b.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                                <h4 className="font-bold text-gray-800 text-sm mb-2 pb-2 border-b">{b.namaUsaha}</h4>
+                                <div className="space-y-1.5 text-xs">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Pendapatan</span>
+                                    <span className="font-medium text-green-600">Rp {formatRupiah(b.revenue.totalProduksi)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Pengeluaran</span>
+                                    <span className="font-medium text-red-600">Rp {formatRupiah(b.expense.totalPengeluaran)}</span>
+                                  </div>
+                                  <div className="flex justify-between pt-1 border-t mt-1">
+                                    <span className="font-semibold text-gray-700">Laba Bersih</span>
+                                    <span className={`font-bold ${b.keuntunganKotor >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                      Rp {formatRupiah(b.keuntunganKotor)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

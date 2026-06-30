@@ -1,5 +1,6 @@
-'use client';
-import React, { useState, useEffect } from 'react';
+const fs = require('fs');
+
+const form_content = `import React, { useState, useEffect } from 'react';
 import { 
   BusinessRecord, 
   BusinessData,
@@ -153,7 +154,7 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
           </div>
           <ul className="list-disc pl-5 space-y-1">
             {errors.map((e, i) => (
-              <li key={i} className={`text-sm ${e.type === 'error' ? 'text-red-600' : 'text-orange-600'}`}>
+              <li key={i} className={\`text-sm \${e.type === 'error' ? 'text-red-600' : 'text-orange-600'}\`}>
                 {e.message}
               </li>
             ))}
@@ -192,7 +193,7 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
         <p className="text-sm text-gray-500 mb-4">Centang satu atau lebih usaha yang dimiliki oleh responden ini.</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {businesses.map(b => (
-            <label key={b.id} className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all ${b.isActive ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+            <label key={b.id} className={\`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all \${b.isActive ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}\`}>
               <input type="checkbox" className="w-5 h-5 text-blue-600 rounded"
                 checked={b.isActive} onChange={() => { toggleBusiness(b.id); setActiveTab(b.id); }} />
               <span className="font-semibold text-gray-800">{b.namaUsaha}</span>
@@ -207,7 +208,7 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
           <div className="flex border-b bg-gray-50 overflow-x-auto">
             {activeBusinesses.map(b => (
               <button key={b.id} onClick={() => setActiveTab(b.id)}
-                className={`px-6 py-4 font-bold whitespace-nowrap transition-colors ${activeTab === b.id ? 'text-blue-600 border-b-2 border-blue-600 bg-white' : 'text-gray-500 hover:bg-gray-100'}`}>
+                className={\`px-6 py-4 font-bold whitespace-nowrap transition-colors \${activeTab === b.id ? 'text-blue-600 border-b-2 border-blue-600 bg-white' : 'text-gray-500 hover:bg-gray-100'}\`}>
                 {b.namaUsaha}
               </button>
             ))}
@@ -371,3 +372,7 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
     </div>
   );
 };
+`;
+
+fs.writeFileSync('src/components/calculator/BusinessForm.tsx', form_content, 'utf8');
+console.log('Done generating BusinessForm.tsx');
