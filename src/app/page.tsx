@@ -10,8 +10,8 @@ import { OfflineManager } from '@/components/OfflineManager';
 import { PrintReport } from '@/components/calculator/PrintReport';
 import { Calculator, LayoutDashboard, Database, Briefcase, HelpCircle, LogOut } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { firestoreService } from '@/lib/firestore';
-import { auth } from '@/lib/firebase';
+import { supabaseService } from '@/lib/supabaseService';
+import { supabase } from '@/lib/supabase';
 
 export default function Home() {
   const [records, setRecords] = useState<BusinessRecord[]>([]);
@@ -26,8 +26,8 @@ export default function Home() {
   // Load records from cloud on client mount
   useEffect(() => {
     setIsClient(true);
-    if (user?.uid) {
-      firestoreService.getUserRecords(user.uid)
+    if (user?.id) {
+      supabaseService.getUserRecords(user.id)
         .then(data => {
           console.log("DATA_LOADED_FROM_CLOUD", data);
           setRecords(data);
@@ -41,13 +41,13 @@ export default function Home() {
   // Save single record or delete to cloud
   const syncToCloud = async (newRecords: BusinessRecord[], modifiedRecord?: BusinessRecord, deleteId?: string) => {
     setRecords(newRecords);
-    if (user?.uid) {
+    if (user?.id) {
       try {
         if (modifiedRecord) {
-          await firestoreService.saveRecord(user.uid, modifiedRecord);
+          await supabaseService.saveRecord(user.id, modifiedRecord);
         }
         if (deleteId) {
-          await firestoreService.deleteRecord(user.uid, deleteId);
+          await supabaseService.deleteRecord(user.id, deleteId);
         }
       } catch (e) {
         console.error("Failed to sync to cloud", e);
@@ -102,11 +102,11 @@ export default function Home() {
     
     setRecords(merged);
     
-    if (user?.uid) {
+    if (user?.id) {
       alert("Menyinkronisasi data impor ke Cloud...");
       // For simplicity, we save one by one. In production, consider batching.
       for (const rec of recordsToSync) {
-        await firestoreService.saveRecord(user.uid, rec);
+        await supabaseService.saveRecord(user.id, rec);
       }
       alert("Selesai menyinkronisasi data ke Cloud!");
     }
@@ -173,7 +173,7 @@ export default function Home() {
           
           <div className="flex items-center gap-2">
             <button 
-              onClick={() => auth.signOut()}
+              onClick={() => supabase.auth.signOut()}
               className="px-3 py-1.5 text-xs font-bold bg-red-50 hover:bg-red-100 text-red-600 rounded-lg flex items-center gap-1.5 transition-colors"
             >
               <LogOut className="w-3.5 h-3.5" />
