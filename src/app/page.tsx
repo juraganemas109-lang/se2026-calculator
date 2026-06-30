@@ -38,28 +38,10 @@ export default function Home() {
 
   useEffect(() => {
     setIsClient(true);
-    // Load from local storage first
-    const stored = localStorage.getItem('se2026_records');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setRecords(parsed);
-        } else {
-          console.warn('Local records is not an array, resetting to empty.');
-          setRecords([]);
-        }
-      } catch (e) {
-        console.error('Failed to parse local records', e);
-      }
-    }
-    
-    // If cloud is somehow active, fetch from cloud
     if (user?.id) {
       supabaseService.getUserRecords(user.id)
         .then(data => {
           setRecords(data);
-          localStorage.setItem('se2026_records', JSON.stringify(data));
         })
         .catch(err => {
           console.error('Failed to fetch cloud records', err);
@@ -69,8 +51,6 @@ export default function Home() {
 
   const syncToCloud = async (newRecords: BusinessRecord[], modifiedRecord?: BusinessRecord, deleteId?: string) => {
     setRecords(newRecords);
-    localStorage.setItem('se2026_records', JSON.stringify(newRecords));
-    
     if (user?.id) {
       try {
         if (modifiedRecord) {
@@ -81,8 +61,7 @@ export default function Home() {
         }
       } catch (e) {
         console.error("Failed to sync to cloud", e);
-        // Supress alert to avoid annoying users in offline mode if cloud fails
-        // alert("Gagal menyinkronisasi ke Cloud. Data aman di perangkat Anda.");
+        alert("Gagal menyinkronisasi ke Cloud. Silakan periksa koneksi internet Anda.");
       }
     }
   };
@@ -116,8 +95,8 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const totalResponden = Array.isArray(records) ? records.length : 0;
-  const totalUsaha = Array.isArray(records) ? records.reduce((sum, r) => sum + (r?.businesses ? r.businesses.filter(b => b?.isActive).length : 0), 0) : 0;
+  const totalResponden = records.length;
+  const totalUsaha = records.reduce((sum, r) => sum + r.businesses.filter(b => b.isActive).length, 0);
 
   if (!isClient) return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Memuat...</div>;
 
@@ -145,7 +124,7 @@ export default function Home() {
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Reset Cache</span>
               </button>
-              <button onClick={() => { localStorage.removeItem('is_authenticated'); window.location.reload(); }} className="px-3 py-1.5 text-xs font-bold bg-red-50 hover:bg-red-100 text-red-600 rounded-lg flex items-center gap-1.5 transition-colors">
+              <button onClick={() => supabase.auth.signOut()} className="px-3 py-1.5 text-xs font-bold bg-red-50 hover:bg-red-100 text-red-600 rounded-lg flex items-center gap-1.5 transition-colors">
                 <LogOut className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Keluar</span>
               </button>
