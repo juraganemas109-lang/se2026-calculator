@@ -27,8 +27,8 @@ export const firestoreService = {
       records.push(doc.data() as BusinessRecord);
     });
     
-    // Optional: Sort by timestamp descending
-    records.sort((a, b) => b.timestamp - a.timestamp);
+    // Optional: Sort by createdAt descending
+    records.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     
     return records;
   },
