@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import { Lock, Mail, Key, AlertCircle, LogIn, UserPlus } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const router = useRouter();
   
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [email, setEmail] = useState('');
@@ -22,21 +23,16 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
     try {
       if (isLoginMode) {
-        await signInWithEmailAndPassword(auth, email, password);
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInError) throw signInError;
+        router.refresh(); // Force Next.js to fetch fresh data after login
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const { error: signUpError } = await supabase.auth.signUp({ email, password });
+        if (signUpError) throw signUpError;
       }
     } catch (err: any) {
       console.error(err);
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-        setError('Email atau password salah.');
-      } else if (err.code === 'auth/email-already-in-use') {
-        setError('Email ini sudah terdaftar. Silakan login.');
-      } else if (err.code === 'auth/weak-password') {
-        setError('Password terlalu lemah (minimal 6 karakter).');
-      } else {
-        setError(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
-      }
+      setError(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
     } finally {
       setIsSubmitting(false);
     }

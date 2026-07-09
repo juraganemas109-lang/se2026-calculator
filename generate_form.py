@@ -1,5 +1,6 @@
-'use client';
-import React, { useState, useEffect } from 'react';
+import os
+
+form_content = """import React, { useState, useEffect } from 'react';
 import { 
   BusinessRecord, 
   BusinessData,
@@ -371,3 +372,8 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({ onSave, editRecord, 
     </div>
   );
 };
+"""
+
+with open('src/components/calculator/BusinessForm.tsx', 'w', encoding='utf-8') as f:
+    f.write(form_content)
+print("BusinessForm.tsx generated successfully.")

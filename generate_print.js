@@ -1,4 +1,6 @@
-import React from 'react';
+const fs = require('fs');
+
+const print_content = `import React from 'react';
 import { BusinessRecord, formatRupiah } from '@/utils/calculatorHelper';
 import { Building2, User, Phone, MapPin, Calendar, Users, Calculator, FileText, ArrowRight, Wallet, TrendingUp, TrendingDown, Factory, CheckCircle2 } from 'lucide-react';
 
@@ -126,9 +128,9 @@ export const PrintReport: React.FC<PrintReportProps> = ({ record }) => {
                         <span className="text-base font-bold text-gray-900">Rp {formatRupiah(b.expense.totalPengeluaran)}</span>
                       </div>
                       
-                      <div className={`mt-3 pt-3 border-t-2 border-dashed flex justify-between items-center ${b.keuntunganKotor >= 0 ? 'border-green-200' : 'border-red-200'}`}>
+                      <div className={\`mt-3 pt-3 border-t-2 border-dashed flex justify-between items-center \${b.keuntunganKotor >= 0 ? 'border-green-200' : 'border-red-200'}\`}>
                         <span className="font-black text-gray-800 uppercase tracking-wide">LABA BERSIH (USAHA {index+1})</span>
-                        <span className={`text-xl font-black ${b.keuntunganKotor >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <span className={\`text-xl font-black \${b.keuntunganKotor >= 0 ? 'text-green-600' : 'text-red-600'}\`}>
                           Rp {formatRupiah(b.keuntunganKotor)}
                         </span>
                       </div>
@@ -154,9 +156,9 @@ export const PrintReport: React.FC<PrintReportProps> = ({ record }) => {
 
         {/* GRAND TOTAL KESIMPULAN */}
         <section className="print:break-inside-avoid mt-8">
-           <div className={`p-6 rounded-2xl border-2 ${grandTotalLaba >= 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'} flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm`}>
+           <div className={\`p-6 rounded-2xl border-2 \${grandTotalLaba >= 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'} flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm\`}>
               <div className="flex items-center gap-4">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${grandTotalLaba >= 0 ? 'bg-emerald-100' : 'bg-red-100'}`}>
+                <div className={\`w-16 h-16 rounded-full flex items-center justify-center \${grandTotalLaba >= 0 ? 'bg-emerald-100' : 'bg-red-100'}\`}>
                   {grandTotalLaba >= 0 ? <TrendingUp className="w-8 h-8 text-emerald-600" /> : <TrendingDown className="w-8 h-8 text-red-600" />}
                 </div>
                 <div>
@@ -166,7 +168,7 @@ export const PrintReport: React.FC<PrintReportProps> = ({ record }) => {
               </div>
               <div className="text-right bg-white px-6 py-4 rounded-xl shadow-sm border border-gray-100 min-w-[250px]">
                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">TOTAL LABA GABUNGAN</p>
-                 <p className={`text-3xl font-black tracking-tight ${grandTotalLaba >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                 <p className={\`text-3xl font-black tracking-tight \${grandTotalLaba >= 0 ? 'text-emerald-600' : 'text-red-600'}\`}>
                    Rp {formatRupiah(grandTotalLaba)}
                  </p>
               </div>
@@ -187,3 +189,7 @@ export const PrintReport: React.FC<PrintReportProps> = ({ record }) => {
     </div>
   );
 };
+`;
+
+fs.writeFileSync('src/components/calculator/PrintReport.tsx', print_content, 'utf8');
+console.log('Done generating PrintReport.tsx');
